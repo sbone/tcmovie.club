@@ -1,4 +1,4 @@
-# Twin Cities Movie Screenings
+# tcmovie.club
 
 A small TypeScript app that turns saved Trylon, Heights, Riverview, and Parkway
 listings into chronological HTML date pages. Includes all films, explicit
@@ -50,7 +50,9 @@ screening content changes. First/last observation times live outside screening
 facts and cover records in the current snapshot. Replaying fixtures does not make
 them fresh. This is local, single-writer storage, without historical backups or
 concurrent ingestion. Cross-source duplicates require an exact normalized title,
-venue, and start time; the venue's own listing wins and membership labels survive.
+venue, and start time after removing explicit format suffixes such as “in 4K.”
+The venue's own listing wins, known formats fill missing values, and membership
+labels survive.
 
 `npm run check` compiles strict TypeScript and runs domain, fixture, DST, rendering,
 storage, and full-generation tests, including a failed-source recovery scenario.
@@ -59,19 +61,39 @@ declarations shipped by `ical.js`; application code remains strictly checked.
 
 ## Coverage and remaining work
 
-These captures demonstrate parsing, not a complete or current schedule. All preview
-pages say the data is stale and coverage may be incomplete. The saved Trylon feed
-has no September 29 events despite earlier indexed homepage listings. Riverview
-has one daily listing and two film detail examples; Heights supplies its captured homepage;
-Parkway supplies its movie listing and one detail page. Trylon's apparent placeholder
-end times are omitted. See [source research](docs/source-research.md) for evidence,
-access constraints, and capture provenance.
+The reviewed offline window is **September 29–October 12, 2026**, with 76 showings
+after removing cross-listed duplicates. Input coverage is now:
 
-Before live collection, settle the fetcher identity and validate source coverage
-and permitted access. Then add a small budgeted fetch command with conditional
-requests, timeouts, cooldowns, and failure backoff. Trylon's feed requests at least
-24 hours between refreshes. No recurring collection is enabled while these remain
-unresolved. A scheduler and deployment can follow a verified manual collection.
+| Source | Offline evidence |
+| --- | --- |
+| Trylon | Saved calendar plus reviewed indexed film-page corrections: September 29 screenings, a sold-out flag, and all three Horrorthon sessions. |
+| Heights | Homepage plus September and October calendars, covering the full preview window. |
+| Riverview | Daily listings through October 1, an explicitly unscheduled October 2 page, film details, and Special Screenings announcements. |
+| Parkway | Movie listing plus all seven event detail schedules in the preview window, including both HUMP showings. |
+
+The full index also retains published dates outside the preview window. Unknown
+times are not invented: Riverview's Canoe Dig It? announcement has no clock time
+and remains a parser diagnostic; later Parkway listings retain uncertain event
+starts. Calendar placeholder endings are omitted; Horrorthon's explicit program
+endings come from its reviewed film page.
+
+All preview pages remain marked stale. Indexed Trylon supplements are reviewed
+offline evidence, not a production acquisition method or proof of current coverage.
+No Trylon HTTP requests were added. See [source research](docs/source-research.md)
+and fixture metadata for capture provenance, bounded request accounting, and
+remaining access constraints.
+
+The collection plan is one server job at **7 AM and 7 PM America/Chicago**. It
+collects within each source's request budget, retains good data on failure, and
+publishes static HTML/JSON with source timestamps. Every visitor request serves
+published files; there is no manual refresh or visitor-triggered collection.
+Trylon is eligible at the morning run only, with at least 24 hours between requests
+as its feed specifies. More restrictive source rules always take precedence.
+
+Before enabling the job, settle the fetcher identity and validate source coverage
+and permitted access. Keep acquisition small: conditional requests, bounded
+timeouts, and backoff until a later scheduled run. Collection and deployment
+remain unimplemented; the current preview is entirely offline.
 
 The [original project brief](twin-cities-movie-screenings-codex-handoff.md) remains
 the broader roadmap. Raw research responses are retained locally under `.research/`;

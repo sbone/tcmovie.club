@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://www.riverviewtheater.com/base/index/2026-10-02",
+  "responseAt": "2026-09-29T12:52:38.000Z",
+  "inspectedOn": "2026-09-29",
+  "contentType": "text/html; charset=utf-8",
+  "originalSha256": "a662be5f014b9356e99f813730128980b81f12583361d1bd20df4b1c5cb75cab",
+  "notes": "Actual HTML captured once for offline coverage verification. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness."
+}

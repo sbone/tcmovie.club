@@ -24,28 +24,36 @@ export function parseParkway(raw: string, details: Readonly<Record<string, strin
       const date = englishDate(item.find(".summary-metadata-item--date").first().text());
       const clock = item.find(".event-time-12hr").first().text().split(/[–—]/)[0] ?? "";
       const at = chicagoTime(`${date}T${clock24(clock)}`);
-      let start: ScreeningStart = { kind: "event", at };
+      let starts: ScreeningStart[] = [{ kind: "event", at }];
       const detail = details[path];
       if (detail) {
         const page = load(detail);
         page("br").replaceWith(" ");
         if (page("time.event-date").first().attr("datetime") !== date) throw new Error("Detail date disagrees with listing");
         const paragraphs = page(".eventitem-column-content p").toArray().map(el => page(el).text()).join("\n");
-        const movie = [...paragraphs.matchAll(/\b(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)\s+(?:Movie|Film|Screening)\b/gi)];
+        const programs = [...paragraphs.matchAll(/\b(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)\s+(?:Movie|Film|Screening|Show)\b/gi)];
         const doors = [...paragraphs.matchAll(/\b(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)\s+Doors\b/gi)];
-        if (movie.length === 1 && movie[0]?.[1]) {
-          start = { kind: "screening", at: chicagoTime(`${date}T${clock24(movie[0][1])}`),
-            doorsAt: doors.length === 1 && doors[0]?.[1] ? chicagoTime(`${date}T${clock24(doors[0][1])}`) : null };
+        if (programs.length) {
+          if (doors.length && doors.length !== programs.length) throw new Error("Ambiguous pairing of program and doors times");
+          starts = programs.map((match, index) => {
+            const clock = match[1];
+            if (!clock) throw new Error("Missing program time");
+            const door = doors[index]?.[1];
+            return { kind: "screening", at: chicagoTime(`${date}T${clock24(clock)}`),
+              doorsAt: door ? chicagoTime(`${date}T${clock24(door)}`) : null };
+          });
         }
       }
-      if (start.kind === "event") diagnostics.push({ kind: "warning", record, message: "Film time unconfirmed; showing event start" });
-      candidates.push({ id: `parkway:${path}:${date}`, title, venueId: "parkway", start,
-        endsAt: null, eventUrl: new URL(path, "https://theparkwaytheater.com").href,
-        ticketUrl: null, format: title.match(/\b(35mm|70mm|DCP|4K)\b/i)?.[1] ?? null,
-        series: null, tags: [], status: { kind: "scheduled", availability: /sold[ -]?out/i.test(title) ? "sold-out" : "unknown" },
-        access: /members[ -]?only/i.test(title) ? "members-only" : "unknown",
-        sourceId: "parkway", sourceEventId: path,
-      });
+      for (const [index, start] of starts.entries()) {
+        if (start.kind === "event") diagnostics.push({ kind: "warning", record, message: "Film time unconfirmed; showing event start" });
+        candidates.push({ id: `parkway:${path}:${date}${index ? `:${index + 1}` : ""}`, title, venueId: "parkway", start,
+          endsAt: null, eventUrl: new URL(path, "https://theparkwaytheater.com").href,
+          ticketUrl: null, format: title.match(/\b(35mm|70mm|DCP|4K)\b/i)?.[1] ?? null,
+          series: null, tags: [], status: { kind: "scheduled", availability: /sold[ -]?out/i.test(title) ? "sold-out" : "unknown" },
+          access: /members[ -]?only/i.test(title) ? "members-only" : "unknown",
+          sourceId: "parkway", sourceEventId: path,
+        });
+      }
     } catch (error) {
       diagnostics.push({ kind: "invalid", record, message: errorMessage(error) });
     }

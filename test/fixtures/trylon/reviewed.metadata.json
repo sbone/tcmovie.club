@@ -1,0 +1,22 @@
+{
+  "inspectedOn": "2026-09-29",
+  "acquiredVia": "web tool indexed official pages; not direct HTTP captures",
+  "sources": [
+    {
+      "sourceUrl": "https://www.trylon.org/film/je-tu-il-elle/",
+      "reportedCrawl": "yesterday",
+      "facts": "September 29, 2026: 7 PM and 9 PM, Trylon; series Taking the Scenic Route."
+    },
+    {
+      "sourceUrl": "https://www.trylon.org/film/season-of-the-witch-in-35mm/",
+      "reportedCrawl": "6 days ago",
+      "facts": "September 30, 2026: 7 PM; sold out, also corroborated by homepage indexed today."
+    },
+    {
+      "sourceUrl": "https://www.trylon.org/film/horrorthon-x/",
+      "reportedCrawl": "2 days ago",
+      "facts": "October 9: 4 PM to midnight. October 10: 10 AM to 6 PM, and 8 PM to 4 AM next day. Three program sessions."
+    }
+  ],
+  "notes": "Reviewed normalized offline supplements/corrections. Matched feed records retain their UIDs. Exact HTTP dates unavailable; freshness remains the original feed timestamp and stale warning. This is not a production acquisition mechanism. No descriptions, ticket inventories or prices included."
+}

@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://theparkwaytheater.com/all-events/sios-oct-2026",
+  "responseAt": "2026-09-29T00:24:01.000Z",
+  "inspectedOn": "2026-09-29",
+  "contentType": "text/html;charset=utf-8",
+  "originalSha256": "027b287b39306d0d67fa05056dfe64446a417a30b5eca750795f3952a2e95803",
+  "notes": "Actual HTML captured once for offline coverage verification. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness. Committed fixture is a DOM excerpt retaining original date/schedule elements, with a minimal wrapper; full body retained in local research. Verified identical parser output before reduction."
+}

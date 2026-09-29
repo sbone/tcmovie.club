@@ -53,8 +53,8 @@ not guaranteed feeds, complete coverage, or permission from the operators.
   are club screenings. This is the captured range, not verified schedule completeness.
 - Both `REFRESH-INTERVAL;VALUE=DURATION:PT1440M` and `X-PUBLISHED-TTL:PT1440M`
   indicate **24 hours**. Use a minimum 24-hour polling interval for Trylon,
-  including manual refresh; the published interval takes precedence over our
-  generic two-pass-per-day proposal. See [RFC 7986 §5.7](https://www.rfc-editor.org/rfc/rfc7986.html#section-5.7).
+  the published interval takes precedence over our two-pass-per-day schedule.
+  See [RFC 7986 §5.7](https://www.rfc-editor.org/rfc/rfc7986.html#section-5.7).
 - ETag and Last-Modified are present; the latter is `2026-09-28T15:18:01Z`.
   Conditional requests are a candidate, but 304 behavior remains untested.
 - **Do not publish the supplied end times as film endings:** all 194 entries
@@ -163,7 +163,7 @@ not guaranteed feeds, complete coverage, or permission from the operators.
   request budget. Prefer explicit film/program times. When only event time is
   known, preserve that uncertainty in the domain and in the rendered label.
 
-## Request accounting and evidence
+## Initial request accounting and evidence
 
 Direct HTTP requests made after the sandbox permitted networking:
 
@@ -174,7 +174,7 @@ Direct HTTP requests made after the sandbox permitted networking:
 | Riverview | 3 | `/robots.txt`, `/`, `/show/show/3364` |
 | Parkway | 5 | `/robots.txt`, `/`, `/movies`, `/home?format=rss`, `/all-events/poltergeist-26` |
 
-**14 agent-issued direct requests total.** Each URL was fetched once by the agent;
+**14 agent-issued direct requests in the initial inspection.** Each URL was fetched once by the agent;
 none redirected. The later successful user-supplied feed capture is recorded
 separately and was not fetched again by the agent. The first
 robots batch issued one request per host. Later requests to the same host were
@@ -193,15 +193,65 @@ It did not pretend to be a browser. A production identity needs a real contact U
 or email. Bodies and safe response metadata are retained locally in
 `.research/2026-09-29/`; response cookies are not retained in the manifest.
 
+## Offline coverage follow-up
+
+The reviewed preview spans **September 29–October 12, 2026**. All generation and
+tests still run offline; no recurring collector has been enabled.
+
+| Source | Inputs added or reconciled | Result |
+| --- | --- | --- |
+| Trylon | Indexed official homepage and three film pages; original ICS retained unchanged. | Two September 29 Je Tu Il Elle showings, Season of the Witch's sold-out status, and Friday Horrorthon restored. All three Horrorthon sessions have explicit program ending times. 30 showings in the preview before cross-source deduplication. |
+| Heights | Previously saved September calendar and one linked October calendar capture. | 38 total showings, 30 in the preview. Calendar adds films/dates omitted from the homepage, including Parasite and Babylon in 70mm. Stable ticket IDs deduplicate overlapping markup; missing DCP metadata is filled from the homepage. |
+| Riverview | September 30, October 1, October 2 daily pages and Special Screenings. | Regular listings through October 1 and They're Here on October 7 at 5:45 PM: 9 preview showings. October 2 explicitly says scheduling is pending; that is not a broken parser or proof that subsequent dates are empty. Other timed specials remain in the full index. Canoe Dig It? lacks a clock time and is reported without inventing one. |
+| Parkway | All six remaining event detail pages in the preview; existing Poltergeist retained. | 8 preview showings across 7 events. HUMP has two sessions; explicit film/program starts and doors times are parsed separately. Later uninspected event dates retain uncertain start labels. |
+
+After removing cross-listed Heights duplicates, the preview has **76 showings**;
+the full saved index has **261**. Titles differing only by an explicit format
+suffix such as “in 4K” match at the same venue and instant. The venue's own link
+wins, while known format and membership information survive.
+
+Trylon's [Je Tu Il Elle film page](https://www.trylon.org/film/je-tu-il-elle/)
+explicitly lists dated September 29 ticket sessions. The
+[Season of the Witch page](https://www.trylon.org/film/season-of-the-witch-in-35mm/)
+and homepage corroborate sold-out status. The
+[Horrorthon page](https://www.trylon.org/film/horrorthon-x/) gives three program
+sessions, including Friday, October 9, 4 PM–midnight, absent from the feed and
+homepage widget. The Saturday sessions run 10 AM–6 PM and 8 PM–4 AM the following
+day. These corrections are validated normalized offline records in
+`test/fixtures/trylon/reviewed.json`, with separate indexed-page provenance. They
+do not modify the raw ICS and are **not** a production collection mechanism.
+Cached text is not proof of current availability; the page remains marked stale.
+No new direct Trylon request, retry, identity change, or bypass was made.
+
+This follow-up added **11 direct HTTP requests**: Heights 1, Riverview 4, Parkway 6.
+All returned 200, each URL was requested once, and same-host requests were spaced
+by offline work. No redirects, assets, forms, or ticket vendors were followed.
+The network-enabled direct-request total is now **25** (initial 14 plus 11).
+Separately, the web reader opened Trylon's homepage/three film pages and Riverview's
+October 2 page; its underlying upstream traffic is not exposed. The previous
+Akira indexed-page inspection is recorded in its fixture metadata.
+
+New Parkway detail fixtures are small DOM excerpts containing the original date
+and schedule paragraphs. Full raw responses and safe request metadata remain in
+local `.research/2026-09-29/`. Their parser output was verified identical before
+reducing the fixtures. Other newly committed HTML is sanitized captured markup.
+Capture timestamps stay conservative; indexed supplements have no fabricated HTTP
+Date, and replaying the inputs never marks them fresh.
+
 ## Proposed initial collection policy — not implemented or scheduled
 
-- Start with two passes per day, at least 12 hours apart, per enabled source,
-  **except Trylon: at least 24 hours**, per the successfully captured feed.
+- Run one server job at **7 AM and 7 PM America/Chicago**, using local timezone
+  scheduling rather than fixed UTC hours. **Trylon: morning only, at least 24 hours
+  since the previous request**, per the successfully captured feed. The elapsed
+  interval guard still applies across daylight saving changes and delayed runs.
+- Publish static HTML/JSON with source timestamps after collection. Visitor
+  requests serve static files and never trigger upstream requests. No manual
+  refresh action, API, or visitor-triggered ingestion.
 - Cap each pass at **6 HTTP requests per source**, including robots checks,
   details, and any redirects; maximum **12 per day**. This is a ceiling, not a
   target. Incomplete coverage is a reason to reassess, not silently exceed it.
 - One in-flight request per host, at least 10 seconds between requests; no
-  immediate retries. Manual refresh shares the same budget/cooldown and is coalesced.
+  immediate retries. Failures wait for a later scheduled run, honoring longer backoff.
 - Recheck robots daily; respect more restrictive source rules. An unreadable or
   denied robots response pauses ingestion pending review.
 - Check discovered redirects before following them; a new origin needs its own

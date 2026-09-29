@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://theparkwaytheater.com/all-events/programme-4",
+  "responseAt": "2026-09-29T10:02:28.000Z",
+  "inspectedOn": "2026-09-29",
+  "contentType": "text/html;charset=utf-8",
+  "originalSha256": "0c1d8ea4560c8318171f0f452bc004c62c6415ef3ff863c80e34a0652cd1fee6",
+  "notes": "Actual HTML captured once for offline coverage verification. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness. Committed fixture is a DOM excerpt retaining original date/schedule elements, with a minimal wrapper; full body retained in local research. Verified identical parser output before reduction."
+}

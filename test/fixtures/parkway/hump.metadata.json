@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://theparkwaytheater.com/all-events/hump-fall-2026",
+  "responseAt": "2026-09-29T12:55:13.000Z",
+  "inspectedOn": "2026-09-29",
+  "originalSha256": "512dff73a515a87a4260a429bf36a81ad285eda9c797d2b8477034a4948696a3",
+  "notes": "Actual captured HTML. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness. Committed fixture is a DOM excerpt retaining original date/schedule elements, with a minimal wrapper; full body retained in local research. Verified identical parser output before reduction."
+}

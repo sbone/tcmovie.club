@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://theparkwaytheater.com/all-events/hocus-pocus-26",
+  "responseAt": "2026-09-29T12:53:39.000Z",
+  "inspectedOn": "2026-09-29",
+  "originalSha256": "40eae73aa0600abbe11b7dafc56820f6318edc31a09375f90d8f033a82fc83a2",
+  "notes": "Actual captured HTML. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness. Committed fixture is a DOM excerpt retaining original date/schedule elements, with a minimal wrapper; full body retained in local research. Verified identical parser output before reduction."
+}

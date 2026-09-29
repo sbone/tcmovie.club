@@ -12,6 +12,12 @@ export function parseRiverview(raw: string, details: Readonly<Record<string, str
     const header = $("h2").toArray().map(el => $(el).text()).find(text => text.startsWith("Now Playing -"));
     if (!header || !$(".blog-sidebar ul.playing").length) throw new Error("Missing dated Riverview schedule");
     const date = englishDate(header);
+    if ($('.blog-sidebar ul.playing').text().includes("there aren't any showtimes scheduled at the moment")
+      && $('#posters a[href^="/show/show/"]').length === 0
+      && $('.blog-sidebar ul.playing a[href^="/show/show/"]').length === 0) {
+      return { kind: "ok", value: { screenings: [], diagnostics: [{ kind: "warning", record: date,
+        message: "Venue explicitly has not scheduled this date" }] } };
+    }
     // ponytail: bounded seven-day history; revisit if the source retains older detail showtimes.
     const past = datesFrom(Temporal.PlainDate.from(date).subtract({ days: 7 }).toString(), 7);
     const dates = new Set([...past, date, ...$('a[href^="/base/index/"]').toArray()
@@ -63,4 +69,49 @@ export function parseRiverview(raw: string, details: Readonly<Record<string, str
   } catch (error) {
     return { kind: "err", error: errorMessage(error) };
   }
+}
+
+export function parseRiverviewSpecials(raw: string, context: string): Result<ParsedSource, string> {
+  try {
+    const $ = load(raw), home = load(context);
+    const header = home("h2").toArray().map(el => home(el).text()).find(text => text.startsWith("Now Playing -"));
+    if (!header || !$(".introduction h2").text().includes("Special Screenings") || !$(".event .description").length) {
+      throw new Error("Missing Riverview specials or dated context");
+    }
+    const anchor = Temporal.PlainDate.from(englishDate(header));
+    const candidates: unknown[] = [], diagnostics: Diagnostic[] = [];
+    $(".event .description").each((index, element) => {
+      const card = $(element), title = card.find("h3").text().trim();
+      const link = card.find('a[href*="/show/show/"]').first().attr("href");
+      try {
+        if (!title || !link) throw new Error("Missing special film title/link");
+        const url = new URL(link, "https://www.riverviewtheater.com");
+        if (url.hostname !== "www.riverviewtheater.com" || !/^\/show\/show\/\d+$/.test(url.pathname)) {
+          throw new Error("Unexpected special film link");
+        }
+        const match = card.text().match(/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+at\s+(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)/i);
+        if (!match) {
+          diagnostics.push({ kind: "warning", record: title, message: "Special screening has no explicit dated start time" });
+          return;
+        }
+        // ponytail: yearless announcements resolve only within the prior week / next 180 days.
+        const matches = [anchor.year - 1, anchor.year, anchor.year + 1]
+          .flatMap(year => {
+            try { return [Temporal.PlainDate.from(englishDate(`${match[2]} ${match[3]}, ${year}`))]; }
+            catch { return []; } // A year candidate may lack February 29.
+          })
+          .filter(day => day.since(anchor).days >= -7 && day.since(anchor).days <= 180
+            && day.toLocaleString("en-US", { weekday: "long" }).toLowerCase() === match[1]?.toLowerCase());
+        const day = matches[0];
+        if (matches.length !== 1 || !day || !match[4]) throw new Error("Special date does not resolve uniquely against dated context");
+        const at = chicagoTime(`${day}T${clock24(match[4])}`);
+        candidates.push({ id: `riverview:${url.pathname}:${at}`, title, venueId: "riverview",
+          start: { kind: "screening", at, doorsAt: null }, endsAt: null, eventUrl: url.href,
+          ticketUrl: null, format: null, series: "Special screening", tags: ["Special screening"],
+          status: { kind: "scheduled", availability: "unknown" }, access: "unknown",
+          sourceId: "riverview", sourceEventId: null });
+      } catch (error) { diagnostics.push({ kind: "invalid", record: title || String(index), message: errorMessage(error) }); }
+    });
+    return { kind: "ok", value: finishParse(candidates, diagnostics) };
+  } catch (error) { return { kind: "err", error: errorMessage(error) }; }
 }

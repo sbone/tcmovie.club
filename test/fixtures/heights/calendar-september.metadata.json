@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://www.heightstheater.com/calendar",
+  "responseAt": "2026-09-29T10:56:59+00:00",
+  "inspectedOn": "2026-09-29",
+  "originalSha256": "bb4bc82ba090d937f2fe6ec5dafc05db9a822a29b252f1926664845578f9b858",
+  "notes": "Actual captured HTML. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness. Compacted whitespace between HTML tags; verified unchanged parser output."
+}

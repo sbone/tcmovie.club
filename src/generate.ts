@@ -19,10 +19,10 @@ const dates = datesFrom(firstDate, 14);
 const screenings: Screening[] = [];
 const sources: SourceInfo[] = [];
 const notes = {
-  trylon: "Saved calendar; coverage is unverified and end times are unavailable.",
-  heights: "Saved homepage; future coverage may be incomplete.",
-  riverview: "Saved daily listing and film details; future coverage is incomplete.",
-  parkway: "Saved movie listing and one detail page; unconfirmed film times are labeled.",
+  trylon: "Saved calendar plus reviewed indexed film-page corrections; live coverage remains unverified.",
+  heights: "Saved homepage and September/October calendars cover the preview window.",
+  riverview: "Saved daily listings through October 1 plus special screenings. October 2 is explicitly not yet scheduled.",
+  parkway: "Saved movie listing and detail schedules confirm film/program starts through October 12; later times may be unconfirmed.",
 };
 let rejected = false;
 for (const sourceId of sourceIdSchema.options) {

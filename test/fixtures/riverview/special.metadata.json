@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://www.riverviewtheater.com/specialscreening",
+  "responseAt": "2026-09-29T12:59:32.000Z",
+  "inspectedOn": "2026-09-29",
+  "originalSha256": "c9498557e14f0eb44dd2b440da2e833bfccfacbe70b61a7254fa7914181b38d2",
+  "notes": "Actual captured HTML. Removed executable scripts, hidden inputs and CSRF metadata. No linked ticket vendors requested. Yearless dates resolve against saved homepage context."
+}

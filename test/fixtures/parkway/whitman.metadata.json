@@ -1,0 +1,7 @@
+{
+  "sourceUrl": "https://theparkwaytheater.com/all-events/whitman-2026",
+  "responseAt": "2026-09-29T12:56:33.000Z",
+  "inspectedOn": "2026-09-29",
+  "originalSha256": "ce9ceb4021fbd38df27c0e3313079a30f7a770bda3a48c8e80b240da966ed2e5",
+  "notes": "Actual captured HTML. Removed executable scripts, hidden inputs and CSRF metadata; redacted image query strings. HTTP Date used conservatively for freshness. Committed fixture is a DOM excerpt retaining original date/schedule elements, with a minimal wrapper; full body retained in local research. Verified identical parser output before reduction."
+}
