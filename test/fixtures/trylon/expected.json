@@ -1,0 +1,27 @@
+[
+  {
+    "id": "trylon:2980-920", "title": "Manborg", "venueId": "trylon",
+    "start": { "kind": "screening", "at": "2026-12-17T01:00:00.000Z", "doorsAt": null },
+    "endsAt": null, "eventUrl": "https://www.trylon.org/film/manborg/", "ticketUrl": null,
+    "format": null, "series": "TRASH FILM DEBAUCHERY", "tags": ["TRASH FILM DEBAUCHERY"],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "unknown",
+    "sourceId": "trylon", "sourceEventId": "2980-920"
+  },
+  {
+    "id": "trylon:2956-908", "title": "Kiki's Delivery Service in 4K", "venueId": "heights",
+    "start": { "kind": "screening", "at": "2026-10-10T16:00:00.000Z", "doorsAt": null },
+    "endsAt": null, "eventUrl": "https://www.trylon.org/film/kikis-delivery-service-in-4k/", "ticketUrl": null,
+    "format": "4K", "series": "Evil Incantations: Witchcraft · Hexes · and Demonology",
+    "tags": ["Evil Incantations: Witchcraft", "Hexes", "and Demonology"],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "unknown",
+    "sourceId": "trylon", "sourceEventId": "2956-908"
+  },
+  {
+    "id": "trylon:2835-874", "title": "Trylon Club Exclusive Screening", "venueId": "trylon",
+    "start": { "kind": "screening", "at": "2027-02-25T01:00:00.000Z", "doorsAt": null },
+    "endsAt": null, "eventUrl": "https://www.trylon.org/film/trylon-club/", "ticketUrl": null,
+    "format": null, "series": null, "tags": [],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "members-only",
+    "sourceId": "trylon", "sourceEventId": "2835-874"
+  }
+]
