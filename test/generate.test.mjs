@@ -28,6 +28,11 @@ test("offline build combines four sources and retains a venue when its next impo
     assert.ok($("main").text().includes("Doors 7:00 PM"));
     assert.ok($("main").text().includes("Winter Hymns"));
     assert.ok($("main").text().includes("The Odyssey"));
+    assert.ok($("main").text().includes("AKIRA (1988)"));
+    const tomorrow = load(await readFile(join(output, "2026-09-30/index.html"), "utf8"));
+    const akira = tomorrow("main li").filter((_, el) => tomorrow(el).text().includes("AKIRA (1988)"));
+    assert.equal(akira.length, 1);
+    assert.equal(akira.find("time").text(), "4:30 PM");
     const before = JSON.parse(await readFile(join(state, "heights.json"), "utf8"));
     await writeFile(join(captures, "heights/home.html"), "<html>New site design</html>");
     const failure = run();

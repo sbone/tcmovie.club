@@ -3,16 +3,18 @@ import { Temporal } from "@js-temporal/polyfill";
 import type { Result } from "../domain.js";
 import { errorMessage, finishParse } from "../parse.js";
 import type { Diagnostic, ParsedSource } from "../parse.js";
-import { chicagoTime, clock24, englishDate } from "../time.js";
+import { chicagoTime, clock24, datesFrom, englishDate } from "../time.js";
 
-// Film pages omit years. Resolve only against full dated navigation from the listing.
+// Film pages omit years. Use dated navigation plus the preceding week for lingering past shows.
 export function parseRiverview(raw: string, details: Readonly<Record<string, string>> = {}): Result<ParsedSource, string> {
   try {
     const $ = load(raw);
     const header = $("h2").toArray().map(el => $(el).text()).find(text => text.startsWith("Now Playing -"));
     if (!header || !$(".blog-sidebar ul.playing").length) throw new Error("Missing dated Riverview schedule");
     const date = englishDate(header);
-    const dates = new Set([date, ...$('a[href^="/base/index/"]').toArray()
+    // ponytail: bounded seven-day history; revisit if the source retains older detail showtimes.
+    const past = datesFrom(Temporal.PlainDate.from(date).subtract({ days: 7 }).toString(), 7);
+    const dates = new Set([...past, date, ...$('a[href^="/base/index/"]').toArray()
       .map(el => $(el).attr("href")?.split("/").at(-1) ?? "").filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value))]);
     const candidates: unknown[] = [];
     const diagnostics: Diagnostic[] = [];

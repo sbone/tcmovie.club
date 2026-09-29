@@ -129,6 +129,12 @@ not guaranteed feeds, complete coverage, or permission from the operators.
   versus film pages to obtain a future window. One film page does not establish
   that every future movie is discoverable from today's listing. Unknown dates
   must not silently become showtimes.
+- **Akira follow-up:** the indexed [film page](https://www.riverviewtheater.com/show/show/3410)
+  confirms September 29 and 30 at 4:30 PM, plus a lingering September 27 entry.
+  The offline loader now accepts multiple film details. A reduced source-derived
+  fixture preserves these three showtime strings; its metadata distinguishes it
+  from raw captured HTML. Recent past dates resolve within the preceding week;
+  future dates still require dated navigation. No direct HTTP request was added.
 
 ## Parkway — HTML works; event time is not necessarily film time
 

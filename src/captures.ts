@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { httpUrlSchema, instantSchema } from "./domain.js";
@@ -22,8 +22,13 @@ export async function loadCapturedSource(sourceId: SourceId, directory: string) 
       case "heights": return parseHeights(raw);
       case "riverview":
       case "parkway": {
-        const detailMeta = metadataSchema.parse(JSON.parse(await read("film.metadata.json")));
-        const details = { [new URL(detailMeta.sourceUrl).pathname]: await read("film.html") };
+        const files = (await readdir(join(directory, sourceId)))
+          .filter(name => name.endsWith(".metadata.json") && name !== metadataFile).sort();
+        const details: Record<string, string> = {};
+        for (const name of files) {
+          const detailMeta = metadataSchema.pick({ sourceUrl: true }).parse(JSON.parse(await read(name)));
+          details[new URL(detailMeta.sourceUrl).pathname] = await read(name.replace(".metadata.json", ".html"));
+        }
         return sourceId === "riverview" ? parseRiverview(raw, details) : parseParkway(raw, details);
       }
       default: return sourceId satisfies never;

@@ -10,12 +10,12 @@ const read = (venue, name) => readFileSync(new URL(`./fixtures/${venue}/${name}`
 const heights = read("heights", "home.html");
 const riverview = read("riverview", "home.html");
 const parkway = read("parkway", "movies.html");
-const riverviewDetails = { "/show/show/3364": read("riverview", "film.html") };
+const riverviewDetails = { "/show/show/3364": read("riverview", "film.html"), "/show/show/3410": read("riverview", "akira.html") };
 const parkwayDetails = { "/all-events/poltergeist-26": read("parkway", "film.html") };
 
 for (const [source, parse, raw, details, count] of [
   ["heights", parseHeights, heights, {}, 18],
-  ["riverview", parseRiverview, riverview, riverviewDetails, 5],
+  ["riverview", parseRiverview, riverview, riverviewDetails, 7],
   ["parkway", parseParkway, parkway, parkwayDetails, 15],
 ]) {
   test(`${source} capture matches reviewed outputs and the common screening contract`, () => {
@@ -62,4 +62,13 @@ test("Riverview resolves year rollover from dated navigation, and rejects unmatc
   assert.deepEqual(result.value.screenings.map(item => item.start.at), ["2027-01-01T01:00:00.000Z", "2027-01-02T01:00:00.000Z"]);
   const damaged = parseRiverview(page, { "/show/show/1": detail.replace("Jan 1st", "Jan 8th") });
   assert.ok(damaged.value.diagnostics.some(item => item.kind === "invalid"));
+});
+
+test("Riverview includes Akira on both days and resolves its lingering past showtime", () => {
+  const result = parseRiverview(riverview, riverviewDetails);
+  assert.equal(result.kind, "ok");
+  assert.deepEqual(result.value.diagnostics, []);
+  assert.deepEqual(result.value.screenings.filter(item => item.title === "AKIRA (1988)").map(item => item.start.at), [
+    "2026-09-27T21:00:00.000Z", "2026-09-29T21:30:00.000Z", "2026-09-30T21:30:00.000Z",
+  ]);
 });

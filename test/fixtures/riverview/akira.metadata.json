@@ -1,0 +1,6 @@
+{
+  "sourceUrl": "https://www.riverviewtheater.com/show/show/3410",
+  "inspectedOn": "2026-09-29",
+  "acquiredVia": "web tool indexed page, reported crawled yesterday",
+  "notes": "Reduced source-derived fixture: title and all three showtime strings verified against the indexed public film page. HTML wrapper reconstructed to match the saved Riverview detail markup; not a raw HTTP response. No HTTP Date or exact acquisition time available. Generator retains the homepage's conservative freshness timestamp and stale warning."
+}

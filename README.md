@@ -62,7 +62,7 @@ declarations shipped by `ical.js`; application code remains strictly checked.
 These captures demonstrate parsing, not a complete or current schedule. All preview
 pages say the data is stale and coverage may be incomplete. The saved Trylon feed
 has no September 29 events despite earlier indexed homepage listings. Riverview
-has one daily listing and one detail page; Heights supplies its captured homepage;
+has one daily listing and two film detail examples; Heights supplies its captured homepage;
 Parkway supplies its movie listing and one detail page. Trylon's apparent placeholder
 end times are omitted. See [source research](docs/source-research.md) for evidence,
 access constraints, and capture provenance.

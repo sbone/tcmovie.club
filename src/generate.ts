@@ -21,7 +21,7 @@ const sources: SourceInfo[] = [];
 const notes = {
   trylon: "Saved calendar; coverage is unverified and end times are unavailable.",
   heights: "Saved homepage; future coverage may be incomplete.",
-  riverview: "Saved daily listing and one film page; future coverage is incomplete.",
+  riverview: "Saved daily listing and film details; future coverage is incomplete.",
   parkway: "Saved movie listing and one detail page; unconfirmed film times are labeled.",
 };
 let rejected = false;
