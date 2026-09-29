@@ -59,10 +59,17 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escape(date)} · tcmovie.club</title>
-<style>body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:#20231f;background:#faf9f4}a{color:#215a44;text-underline-offset:.2em}nav{display:flex;gap:1rem;overflow-x:auto;padding:.5rem 0}nav a{flex:none;padding:.4rem 0}nav [aria-current]{font-weight:700}h1{font-size:1.65rem}ul{list-style:none;padding:0}li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid #d5d8ce}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid #a16920;padding-left:.75rem}:focus-visible{outline:3px solid #a16920;outline-offset:4px}</style></head>
+<style>body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:#20231f;background:#faf9f4}a{color:#215a44;text-underline-offset:.2em}nav{display:flex;gap:1rem;overflow-x:auto;padding:.5rem 0}nav a{flex:none;padding:.4rem 0}nav [aria-current]{font-weight:700}h1{font-size:1.65rem}.screenings{list-style:none;padding:0}.screenings li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid #d5d8ce}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid #a16920;padding-left:.75rem}:focus-visible{outline:3px solid #a16920;outline-offset:4px}</style></head>
 <body><header><p>tcmovie.club</p><nav aria-label="Dates">${links}</nav>
 <h1>${escape(date)}</h1><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p></header>
 <main>${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}
-${rows ? `<ul aria-label="Screenings">${rows}</ul>` : "<p>No screenings found in the saved data for this date.</p>"}</main>
+${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : "<p>No screenings found in the saved data for this date.</p>"}
+<section aria-labelledby="about-tcmc"><h2 id="about-tcmc">About TCMC</h2>
+<p>Twin Cities Movie Screenings brings showtimes from these theaters into one calendar:</p>
+<ul><li><a href="https://www.trylon.org/">Trylon Cinema</a></li>
+<li><a href="https://www.heightstheater.com/">Heights Theater</a></li>
+<li><a href="https://theparkwaytheater.com/">The Parkway Theater</a></li>
+<li><a href="https://www.riverviewtheater.com/">Riverview Theater</a></li></ul>
+</section></main>
 <footer><h2>Source freshness</h2>${sources.map(source => `<p><strong>${venueNames[source.sourceId]}</strong> — ${source.checkedAt ? escape(stamp.format(new Date(source.checkedAt))) : "Never checked"}${source.stale ? " · May be stale" : ""}. ${escape(source.note)}</p>`).join("\n")}</footer></body></html>`;
 }

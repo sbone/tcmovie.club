@@ -20,7 +20,7 @@ test("offline build combines four sources and retains a venue when its next impo
     const html = await readFile(join(output, "index.html"), "utf8");
     const $ = load(html);
     // The reviewed film page supplements the feed's missing Sep 29 Trylon screenings.
-    assert.equal($("main li").length, 8);
+    assert.equal($(".screenings li").length, 8);
     assert.equal($("script, img, link").length, 0);
     assert.ok(gzipSync(html).length < 25000);
     assert.equal((await readdir(output)).filter(name => /^2026-/.test(name)).length, 14);
@@ -31,7 +31,7 @@ test("offline build combines four sources and retains a venue when its next impo
     assert.ok($("main").text().includes("AKIRA (1988)"));
     assert.ok($("main").text().includes("Je Tu Il Elle"));
     const tomorrow = load(await readFile(join(output, "2026-09-30/index.html"), "utf8"));
-    const akira = tomorrow("main li").filter((_, el) => tomorrow(el).text().includes("AKIRA (1988)"));
+    const akira = tomorrow(".screenings li").filter((_, el) => tomorrow(el).text().includes("AKIRA (1988)"));
     assert.equal(akira.length, 1);
     assert.equal(akira.find("time").text(), "4:30 PM");
     assert.ok(tomorrow("main").text().includes("Sold out"));
@@ -39,8 +39,8 @@ test("offline build combines four sources and retains a venue when its next impo
     assert.ok(october7("main").text().includes("They're Here"));
     assert.ok(october7("main").text().includes("Parasite"));
     const october10 = load(await readFile(join(output, "2026-10-10/index.html"), "utf8"));
-    assert.equal(october10("main li").filter((_, el) => october10(el).text().includes("HUMP!")).length, 2);
-    assert.equal(october10("main li").filter((_, el) => october10(el).text().includes("Kiki")).length, 1);
+    assert.equal(october10(".screenings li").filter((_, el) => october10(el).text().includes("HUMP!")).length, 2);
+    assert.equal(october10(".screenings li").filter((_, el) => october10(el).text().includes("Kiki")).length, 1);
     const before = JSON.parse(await readFile(join(state, "heights.json"), "utf8"));
     await writeFile(join(captures, "heights/home.html"), "<html>New site design</html>");
     const failure = run();
