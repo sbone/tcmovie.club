@@ -2,7 +2,7 @@ import { mkdir, rmdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Temporal } from "@js-temporal/polyfill";
-import { instantSchema, sourceIdSchema, sourceScreenings, timeZone } from "./domain.js";
+import { instantSchema, sourceIdSchema, timeZone } from "./domain.js";
 import { dedupe } from "./dedupe.js";
 import { CollectionError, createHttp, dayMs, readHttp, runtime, saveHttp, userAgent } from "./http.js";
 import type { Runtime } from "./http.js";
@@ -14,8 +14,9 @@ import { writeSite } from "./site.js";
 import type { SourceInfo } from "./site.js";
 import { datesFrom } from "./time.js";
 
-export async function collect(options: { contact: string; storage: string; output: string; enableTrylon?: boolean; savedTrylon?: StoredSource }, clock: Runtime = runtime) {
+export async function collect(options: { contact: string; storage: string; output: string; trylon?: "disabled" | "manual" | "morning-only"; savedTrylon?: StoredSource }, clock: Runtime = runtime) {
   const agent = userAgent(options.contact);
+  const trylonEnabled = options.trylon === "manual" || options.trylon === "morning-only";
   const started = clock.now();
   const local = Temporal.Instant.fromEpochMilliseconds(started).toZonedDateTimeISO(timeZone);
   const firstDate = local.toPlainDate().toString();
@@ -29,16 +30,16 @@ export async function collect(options: { contact: string; storage: string; outpu
       const previous = await readSource(options.storage, sourceId);
       const state = await readHttp(httpDirectory, sourceId);
       const save = () => saveHttp(httpDirectory, sourceId, state);
-      // A manual refresh may supply a labeled offline fallback without seeding live state.
-      let next = sourceId === "trylon" && !options.enableTrylon && previous.state.kind === "not-checked"
-        ? options.savedTrylon ?? previous : previous;
+      let next = previous;
       let note = "";
-      if (sourceId === "trylon" && !options.enableTrylon) note = "Live collection is disabled pending repeatable source access. Saved listings retain their original capture date.";
+      if (sourceId === "trylon" && !trylonEnabled) note = "Live collection is disabled.";
       else if (state.paused) note = "Updates paused while source access is reviewed.";
       else if (started < state.nextAttemptAt) note = "Waiting before the next update attempt.";
       else if (state.slot === slot) note = "Showing the latest saved schedule.";
-      else if (sourceId === "trylon" && (local.hour < 7 || local.hour >= 12 || started - state.lastRequestAt < dayMs)) {
-        note = "Trylon is checked in the morning, at least 24 hours after its last request.";
+      else if (sourceId === "trylon" && started - state.lastRequestAt < dayMs) {
+        note = "Waiting at least 24 hours between Trylon requests.";
+      } else if (sourceId === "trylon" && options.trylon === "morning-only" && (local.hour < 7 || local.hour >= 12)) {
+        note = "Trylon is checked in the morning.";
       } else {
         state.slot = slot;
         await save();
@@ -61,17 +62,21 @@ export async function collect(options: { contact: string; storage: string; outpu
         await save();
         await writeSource(options.storage, sourceId, next);
       }
-      const snapshot = lastGood(next.state);
-      const warnings = next.diagnostics.filter(item => item.kind === "warning");
-      if (next.state.kind === "failed") note = "Import failed; showing the last successfully collected schedule.";
-      const stale = !snapshot || next.state.kind === "failed" || !!state.paused
+      // Offline fallback is only for presentation; never write it into live state.
+      const saved = sourceId === "trylon" && !lastGood(next.state) ? options.savedTrylon : undefined;
+      const snapshot = lastGood(next.state) ?? (saved ? lastGood(saved.state) : null);
+      const diagnostics = saved?.diagnostics ?? next.diagnostics;
+      const warnings = diagnostics.filter(item => item.kind === "warning");
+      if (next.state.kind === "failed") note = snapshot ? "Import failed; showing saved listings." : "Import failed; no saved schedule is available.";
+      if (saved) note += " Saved listings retain their original capture date.";
+      const stale = !!saved || !snapshot || next.state.kind === "failed" || !!state.paused
         || clock.now() - Date.parse(snapshot.checkedAt) > (sourceId === "trylon" ? 36 : 24) * 3_600_000
-        || (sourceId === "trylon" && !options.enableTrylon);
+        || (sourceId === "trylon" && !trylonEnabled);
       const info: SourceInfo = { sourceId, checkedAt: snapshot?.checkedAt ?? null, changedAt: snapshot?.changedAt ?? null,
-        stale, incomplete: warnings.length > 0, diagnostics: next.diagnostics,
+        stale, incomplete: warnings.length > 0, diagnostics,
         error: next.state.kind === "failed" ? next.state.error.message : state.paused,
         note: `${note}${warnings.length ? " Some dates or screening details remain unconfirmed; check the venue for its full schedule." : ""}`.trim() };
-      return { info, screenings: sourceScreenings(next.state), failed: next.state.kind === "failed" || !!state.paused };
+      return { info, screenings: snapshot?.screenings ?? [], failed: next.state.kind === "failed" || !!state.paused };
     }));
     const collected = outcomes.map(result => {
       if (result.status === "rejected") throw result.reason;
@@ -88,7 +93,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   try {
     const result = await collect({ contact: process.env.TC_CONTACT ?? "",
       storage: resolve(process.argv[2] ?? ".state/live"), output: resolve(process.argv[3] ?? "site"),
-      enableTrylon: process.env.TC_ENABLE_TRYLON === "1" });
+      trylon: process.env.TC_ENABLE_TRYLON === "1" ? "morning-only" : "disabled" });
     for (const source of result.sources) {
       console.log(`${source.sourceId}: ${source.checkedAt ?? "never checked"}. ${source.note}`);
       if (source.error) console.error(`${source.sourceId}: ${source.error}`);

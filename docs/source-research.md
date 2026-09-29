@@ -325,3 +325,20 @@ to offline generation and to the **unscheduled** collector, which retains the
 same per-source request limits and daily robots check. No live recurring job or
 deployment was enabled. This adds **two direct Main requests** beyond the four
 in the initial survey (six total); there were no retries or asset requests.
+
+
+## Local Trylon access follow-up — September 29, 2026
+
+One local `robots.txt` check using `tc-movie-cal/0.1 (+https://tcmovie.club)`
+succeeded. Its wildcard rules disallow `/wp-admin/` and allow the admin AJAX
+endpoint; they do not disallow the calendar feed. This request used the existing
+bounded HTTP client and persisted its request accounting in `.state/live/http`.
+No identity spoofing, homepage request, or new calendar request was made.
+The earlier 403 was not reproduced by this check; its cause remains unknown.
+
+The last successful calendar capture was still less than 24 hours old, so the
+calendar was not fetched again. A successful robots check does not prove feed
+access or completeness. The manual refresh can now attempt Trylon after its
+24-hour wait at any hour; the separate scheduled collector retains its morning
+window. A 401/403 still pauses access. Until a live snapshot succeeds, manual
+previews retain the labeled saved fallback without copying it into live state.

@@ -26,12 +26,19 @@ authentication). The command runs the tests, refreshes eligible sources, and bui
 a separate preview under `.state/previews/`. Its default collector identity is
 `https://tcmovie.club`; `TC_CONTACT` can override it.
 
-For now this workflow keeps Trylon live collection disabled, even if
-`TC_ENABLE_TRYLON` is set. When no live Trylon state exists, it includes the saved
-Trylon capture and reviewed corrections, retaining their original timestamp and
-explicit stale/provenance labels. It never copies those inputs into live state.
-The other theaters use `.state/live`, including its persistent request budgets and
-backoff. Running the command again within the same collection window reuses data.
+The manual workflow includes Trylon whenever at least 24 hours have passed since
+its last request; it can run at any time of day. All sources still honor robots,
+access pauses, request budgets, conditional requests, and backoff. Re-running
+within the wait period rebuilds from saved data without another Trylon request.
+The `TC_ENABLE_TRYLON` setting applies only to the separate collector command.
+
+Until a live Trylon snapshot exists, the preview uses the saved capture and
+reviewed corrections, keeping their original timestamp and explicit stale labels.
+This fallback survives a failed first live attempt but is never written into live
+state. Once available, the live feed replaces it completely, without carrying
+forward offline corrections. The feed's known coverage gaps remain labeled.
+Other theaters use `.state/live`, including its persistent request budgets and
+backoff. Running again within the same collection window reuses their data.
 
 After printing each theater's count and freshness, it starts a localhost-only
 server on an available port and opens the preview on macOS. Check the dates,
@@ -57,9 +64,8 @@ It uses ordinary HTML/calendar/JSON parsers, with no AI calls or fixture correct
 Optional positional arguments are state and output directories; defaults are
 `.state/live` and `site`. Keep live state separate from `.state/demo`.
 
-Trylon remains disabled by default because repeatable access and feed completeness
-are unresolved. `TC_ENABLE_TRYLON=1` enables its calendar adapter after access is
-settled. It runs only from 7 AM to noon Chicago time and at least 24 hours after
+The standalone collector keeps Trylon disabled by default.
+`TC_ENABLE_TRYLON=1` enables its calendar adapter in morning-only mode. It runs only from 7 AM to noon Chicago time and at least 24 hours after
 the source's last request. This can skip a morning after a delayed run or spring
 DST change. It never imports `reviewed.json` or search-indexed supplements.
 

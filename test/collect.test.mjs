@@ -53,7 +53,7 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
   const directory = await mkdtemp(join(tmpdir(), "tc-collect-"));
   try {
     const storage = join(directory, "state"), output = join(directory, "site");
-    const options = { contact: "https://example.com/movies", storage, output, enableTrylon: true };
+    const options = { contact: "https://example.com/movies", storage, output, trylon: "morning-only" };
     const fake = fakeClock();
     const first = await collect(options, fake.clock);
     assert.equal(first.failed, false);
@@ -129,12 +129,47 @@ test("manual Trylon fallback preserves provenance without fetching or seeding li
     const calls = fake.calls.length;
     await collect(options, fake.clock);
     assert.equal(fake.calls.length, calls, "rebuilding must preserve per-window limits");
-    await collect({ ...options, enableTrylon: true }, fake.clock);
+    await collect({ ...options, trylon: "morning-only" }, fake.clock);
     const live = await readSource(options.storage, "trylon");
     assert.equal(live.state.snapshot.screenings.length, 193, "live collection must not include offline corrections");
     await collect(options, fake.clock);
     const current = JSON.parse(await readFile(join(options.output, "screenings.json")));
     assert.equal(current.some(show => show.title === "Je Tu Il Elle"), false, "saved fallback must not override a live snapshot");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("manual Trylon runs outside morning hours, respects 24 hours, and retains an offline fallback on denial", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tc-manual-trylon-"));
+  try {
+    const storage = join(directory, "live"), httpDirectory = join(storage, "http");
+    await mkdir(httpDirectory, { recursive: true });
+    for (const source of ["heights", "parkway", "riverview", "main"]) {
+      await writeFile(join(httpDirectory, `${source}.json`), JSON.stringify({ paused: "Not part of this test" }));
+    }
+    const capture = await loadCapturedSource("trylon", "test/fixtures");
+    const savedTrylon = acceptSource(emptySource(), "trylon", capture.result, capture.responseAt);
+    const options = { contact: "https://tcmovie.club", storage, output: join(directory, "site"), trylon: "manual", savedTrylon };
+    const fake = fakeClock();
+    fake.setTime(Date.parse("2026-09-29T22:00:00Z")); // 5 PM Chicago
+    await collect(options, fake.clock);
+    assert.equal(fake.calls.length, 2);
+    assert.equal((await readSource(storage, "trylon")).state.snapshot.screenings.length, 193);
+    fake.setTime(Date.parse("2026-09-30T21:00:00Z"));
+    await collect(options, fake.clock);
+    assert.equal(fake.calls.length, 2, "a manual run cannot bypass the 24-hour interval");
+    // A first-ever failed live import must preserve saved display data without storing it as live data.
+    await rm(join(storage, "trylon.json"));
+    fake.setTime(Date.parse("2026-10-01T22:00:00Z"));
+    fake.clock.fetch = async () => new Response("Forbidden", { status: 403 });
+    const failed = await collect(options, fake.clock);
+    const info = failed.sources.find(source => source.sourceId === "trylon");
+    assert.equal(info.checkedAt, capture.responseAt);
+    assert.equal(info.stale, true);
+    assert.match(info.error, /403/);
+    assert.equal((await readSource(storage, "trylon")).state.lastGood, null);
+    assert.match((await readHttp(httpDirectory, "trylon")).paused, /403/);
+    const shows = JSON.parse(await readFile(join(options.output, "screenings.json")));
+    assert.ok(shows.some(show => show.title === "Je Tu Il Elle"));
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
@@ -208,7 +243,7 @@ test("access failures remain paused and Trylon's 24-hour guard survives the spri
     for (const source of ["heights", "parkway", "riverview", "main"]) {
       await writeFile(join(httpDirectory, `${source}.json`), JSON.stringify({ paused: "Review required" }));
     }
-    const options = { contact: "test@example.com", storage: directory, output: join(directory, "site"), enableTrylon: true };
+    const options = { contact: "test@example.com", storage: directory, output: join(directory, "site"), trylon: "morning-only" };
     const fake = fakeClock();
     const lastRequestAt = Date.parse("2026-03-07T13:00:10Z"); // 7 AM CST
     await writeFile(join(httpDirectory, "trylon.json"), JSON.stringify({ lastRequestAt }));

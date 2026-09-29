@@ -42,7 +42,8 @@ historical snapshot, not a promise of current ticket availability.
 
 The parsers, collector, and page generator are implemented and tested. Recurring
 collection and publishing are not configured by this repository. Trylon's live
-collection remains paused while access and feed completeness are resolved.
+collection is available in the manual refresh workflow, with a 24-hour minimum
+interval and explicit coverage warnings.
 Landmark Lagoon and Emagine Willow Creek are possible additions, pending an
 approved way to use their schedules.
 
@@ -99,8 +100,8 @@ contains the broader ideas behind the project.
 ## Collector
 
 For a hands-on update, `npm run refresh` checks the app, refreshes eligible sources,
-opens a local preview, and asks before deploying to Cloudflare. Trylon uses its
-clearly labeled saved data for now. See the [manual refresh guide](docs/development.md#manual-refresh-preview-and-deployment).
+opens a local preview, and asks before deploying to Cloudflare. Trylon is included when eligible, with
+clearly labeled saved data as a fallback until its first successful live capture. See the [manual refresh guide](docs/development.md#manual-refresh-preview-and-deployment).
 
 Live collection is a separate command from the offline preview. The
 [collector setup guide](docs/development.md#collector) covers the project identity,
