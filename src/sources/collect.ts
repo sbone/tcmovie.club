@@ -10,6 +10,7 @@ import { parseHeights, parseHeightsCalendar } from "./heights.js";
 import { parseRiverview, parseRiverviewSpecials } from "./riverview.js";
 import { parseParkway } from "./parkway.js";
 import { parseTrylon } from "./trylon.js";
+import { parseMain } from "./main.js";
 
 type Http = ReturnType<typeof createHttp>;
 
@@ -20,7 +21,7 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
   const dates = datesFrom(firstDate, 14);
   const lastDate = dates[13]!;
   const warn = (message: string) => notes.push({ kind: "warning", record: "coverage", message });
-  const get = async (path: string, kind: "html" | "calendar" = "html") => {
+  const get = async (path: string, kind: "html" | "calendar" | "json" = "html") => {
     const page = await http.request(path, kind); pages.push(page); return page.body;
   };
   const links = (html: string, match: RegExp) => {
@@ -91,6 +92,12 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
       }).map(item => new URL(item.eventUrl).pathname))];
       const details = await refresh(paths);
       results.push(parseParkway(listing, details));
+      break;
+    }
+    case "main": {
+      const query = new URLSearchParams({ start_date: firstDate, end_date: datesFrom(firstDate, 15)[14]!, _locale: "user" });
+      results.push(parseMain(await get(`/wp-json/gecko-theme/v1/calendar-events?${query}`, "json")));
+      warn("Future dates without published showtimes remain unverified; events at other venues are excluded.");
       break;
     }
   }

@@ -6,11 +6,11 @@ export type Result<Value, Error> =
   | Readonly<{ kind: "ok"; value: Value }>
   | Readonly<{ kind: "err"; error: Error }>;
 
-export const venueIdSchema = z.enum(["trylon", "heights", "parkway", "riverview"]);
+export const venueIdSchema = z.enum(["trylon", "heights", "parkway", "riverview", "main"]);
 export type VenueId = z.infer<typeof venueIdSchema>;
 
 // A source can list screenings at another venue (e.g. Trylon at Heights).
-export const sourceIdSchema = z.enum(["trylon", "heights", "parkway", "riverview"]);
+export const sourceIdSchema = z.enum(["trylon", "heights", "parkway", "riverview", "main"]);
 export type SourceId = z.infer<typeof sourceIdSchema>;
 
 const text = z.string().trim().min(1);

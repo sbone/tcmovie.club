@@ -11,6 +11,7 @@ import { errorMessage } from "./parse.js";
 export const origins = {
   trylon: "https://www.trylon.org", heights: "https://www.heightstheater.com",
   riverview: "https://www.riverviewtheater.com", parkway: "https://theparkwaytheater.com",
+  main: "https://mspfilm.org",
 } as const;
 export const dayMs = 86_400_000;
 // The package exports a CJS function but declares an ESM default export.
@@ -51,8 +52,17 @@ export class CollectionError extends Error {
 
 // Only public schedule routes, including when an upstream sends a redirect.
 function allowedPath(source: SourceId, url: URL): boolean {
-  if (url.origin !== origins[source] || url.username || url.password || url.search) return false;
-  if (url.pathname === "/robots.txt") return true;
+  if (url.origin !== origins[source] || url.username || url.password) return false;
+  if (url.pathname === "/robots.txt") return !url.search;
+  if (source === "main") {
+    const q = url.searchParams;
+    const start = q.get("start_date") ?? "", end = q.get("end_date") ?? "";
+    const days = (Date.parse(end) - Date.parse(start)) / dayMs;
+    return url.pathname === "/wp-json/gecko-theme/v1/calendar-events" && q.size === 3
+      && /^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end)
+      && days > 0 && days <= 32 && q.get("_locale") === "user";
+  }
+  if (url.search) return false;
   switch (source) {
     case "trylon": return url.pathname === "/feed/my-calendar-google/";
     case "heights": return /^\/(?:calendar(?:\/[a-z]+\/\d{4})?\/?)?$/.test(url.pathname);
@@ -71,7 +81,7 @@ export function createHttp(source: SourceId, agent: string, state: HttpState,
     const page = state.pages[new URL(path, origin).href];
     return page && clock.now() - page.checkedAt < dayMs ? page : undefined;
   };
-  const request = async (path: string, kind: "html" | "calendar" | "robots", redirects = 0): Promise<Page> => {
+  const request = async (path: string, kind: "html" | "calendar" | "json" | "robots", redirects = 0): Promise<Page> => {
     const url = new URL(path, origin);
     if (!allowedPath(source, url)) throw new CollectionError(`Unapproved schedule URL: ${url.href}`, "access");
     if (kind !== "robots" && robots?.isAllowed(url.href, agent) !== true) {
@@ -86,7 +96,7 @@ export function createHttp(source: SourceId, agent: string, state: HttpState,
     if (wait > 60_000) throw new CollectionError("Waiting for source crawl delay", "network", state.lastRequestAt + delay);
     if (wait > 0) await clock.sleep(wait);
     const previous = state.pages[url.href];
-    const headers: Record<string, string> = { "User-Agent": agent, Accept: kind === "calendar" ? "text/calendar" : kind === "robots" ? "text/plain" : "text/html" };
+    const headers: Record<string, string> = { "User-Agent": agent, Accept: kind === "calendar" ? "text/calendar" : kind === "json" ? "application/json" : kind === "robots" ? "text/plain" : "text/html" };
     if (previous?.etag) headers["If-None-Match"] = previous.etag;
     if (previous?.modified) headers["If-Modified-Since"] = previous.modified;
     count++; state.requestsToday++; state.lastRequestAt = clock.now();
@@ -117,7 +127,7 @@ export function createHttp(source: SourceId, agent: string, state: HttpState,
         body = previous.body;
       } else {
         const type = response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
-        const types = kind === "html" ? ["text/html", "application/xhtml+xml"] : kind === "calendar" ? ["text/calendar"] : ["text/plain"];
+        const types = kind === "html" ? ["text/html", "application/xhtml+xml"] : kind === "calendar" ? ["text/calendar"] : kind === "json" ? ["application/json"] : ["text/plain"];
         if (!type || !types.includes(type)) throw new CollectionError(`Unexpected content type at ${url.pathname}: ${type}`, kind === "robots" ? "access" : "network");
         const limit = kind === "robots" ? 512_000 : 2_000_000;
         if (Number(response.headers.get("content-length")) > limit) throw new CollectionError("Response too large");

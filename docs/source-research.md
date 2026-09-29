@@ -273,3 +273,55 @@ No relevant terms/feed-policy link was identified in the sampled listing markup;
 directives, not affirmative operator permission. Before enabling recurring
 collection, finish that review and configure the contact identity. Ask the venue
 when the permitted method or timing semantics remain unclear.
+
+## Next-venue survey — September 29, 2026
+
+These are candidates from the project brief, not enabled sources. Only The Main
+received direct requests: four total, one each for `/robots.txt`, `/showtimes/`,
+the RSS URL advertised by that page, and one linked film page. Requests used
+`tc-movie-cal/0.1 (+https://tcmovie.club)`, no cookies, no assets, and no retries.
+The raw responses are in ignored `.research/2026-09-29/main/`. Web search/reader
+traffic is separate and its upstream request count is unknown.
+
+| Candidate | Evidence | Decision |
+| --- | --- | --- |
+| [The Main Cinema / MSP Film](https://mspfilm.org/showtimes/) | [Robots](https://mspfilm.org/robots.txt) returned 200 with no disallowed paths. Its advertised [RSS feed](https://mspfilm.org/feed/) returned 200 but zero items. The 190 KB showtimes HTML contained structured data for six films and nine September 29 showings, all on that one date. One linked [film page](https://mspfilm.org/show/hope/) contained three dated showtimes through October 1. An indexed showtimes page also listed a Walker Cinema event, so the listing alone cannot establish that every event is at The Main. No clear schedule feed or complete 14-day discovery path was identified; no published automation terms were found in the sampled pages/search. | Keep as a research snapshot. A live adapter would need dependable future-date discovery and venue identification, with a coverage warning when either is missing. |
+| [Landmark Lagoon Cinema](https://www.landmarktheatres.com/theaters/x01qw-landmark-lagoon-cinema-minneapolis/) | [Landmark's terms](https://www.landmarktheatres.com/terms/) explicitly restrict extracting site data with robots/scrapers and require written permission for other material use. No authorized showtime feed was identified. | No direct request, snapshot, or adapter. Ask for permission or an approved feed before collection. |
+| [Emagine Willow Creek](https://www.emagine-entertainment.com/theatres/emagine-willow-creek/) | [Emagine's terms](https://www.emagine-entertainment.com/terms-and-conditions/) restrict crawling/scraping and publishing its content. Its public theater page lists films, and [Cinema of the Macabre](https://www.emagine-entertainment.com/macabre/) is a Willow Creek program, but no authorized schedule feed was identified. | No direct request, snapshot, or adapter. Ask for permission or an approved feed before collection. |
+
+The Main snapshot is enough to test a same-day parser, but not enough to add a
+production adapter under the project's all-films, 14-day coverage goal. No new
+source is wired into the collector or published site.
+
+### The Main calendar follow-up — same day
+
+The user identified the exact request made by the site's month calendar:
+[`calendar-events?start_date=2026-10-01&end_date=2026-11-01&_locale=user`](https://mspfilm.org/wp-json/gecko-theme/v1/calendar-events?start_date=2026-10-01&end_date=2026-11-01&_locale=user).
+One direct request returned 200 JSON with 185 events. A second, deliberately
+built [14-day request](https://mspfilm.org/wp-json/gecko-theme/v1/calendar-events?start_date=2026-09-29&end_date=2026-10-13&_locale=user)
+returned 199 events dated September 29–October 12; all 170 event IDs in the
+overlapping October 1–12 range matched the month response. The exclusive
+`end_date` is confirmed by October 13 events present in the month response but
+absent from the 14-day response. This makes one bounded calendar request per
+refresh practical, without traversing individual film pages.
+
+The response includes stable numeric `event_id`, title, film permalink, date,
+displayed `start_time`, and event venue. Five of the 199 window events name
+Capri Theater, Minneapolis Institute of Art, or Aster River Room rather than
+The Main's Theater 1–5; the adapter excludes them. An October 13 book launch
+also uses Theater 3 and is explicitly excluded. Other non-film event types may
+need further review as schedules change. The API's `start` values carry `+00:00`
+but often use the displayed local clock hour (for example, 1:00 PM is encoded
+as `13:00+00:00`). Interpreting them as instants would be five hours early.
+The adapter instead combines the calendar date and displayed time with
+America/Chicago, rejecting invalid or ambiguous wall times. The API's `end`
+is not used to infer a film end.
+
+The reduced, description-free 14-day fixture is committed under
+`test/fixtures/main/`; full responses are retained only in ignored
+`.research/2026-09-29/main/`. Parsing the reduced and full window responses
+produced identical screening records and diagnostics. The new adapter is wired
+to offline generation and to the **unscheduled** collector, which retains the
+same per-source request limits and daily robots check. No live recurring job or
+deployment was enabled. This adds **two direct Main requests** beyond the four
+in the initial survey (six total); there were no retries or asset requests.

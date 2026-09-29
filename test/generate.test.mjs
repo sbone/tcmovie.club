@@ -7,7 +7,7 @@ import { gzipSync } from "node:zlib";
 import { test } from "node:test";
 import { load } from "cheerio";
 
-test("offline build combines four sources and retains a venue when its next import breaks", async () => {
+test("offline build combines five sources and retains a venue when its next import breaks", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-generate-"));
   const captures = join(directory, "fixtures");
   const output = join(directory, "site");
@@ -20,7 +20,7 @@ test("offline build combines four sources and retains a venue when its next impo
     const html = await readFile(join(output, "index.html"), "utf8");
     const $ = load(html);
     // The reviewed film page supplements the feed's missing Sep 29 Trylon screenings.
-    assert.equal($(".screenings li").length, 8);
+    assert.equal($(".screenings li").length, 22);
     assert.equal($("script, img, link").length, 0);
     assert.ok(gzipSync(html).length < 25000);
     assert.equal((await readdir(output)).filter(name => /^2026-/.test(name)).length, 14);
@@ -30,6 +30,7 @@ test("offline build combines four sources and retains a venue when its next impo
     assert.ok($("main").text().includes("The Odyssey"));
     assert.ok($("main").text().includes("AKIRA (1988)"));
     assert.ok($("main").text().includes("Je Tu Il Elle"));
+    assert.ok($("main").text().includes("The Main Cinema"));
     const tomorrow = load(await readFile(join(output, "2026-09-30/index.html"), "utf8"));
     const akira = tomorrow(".screenings li").filter((_, el) => tomorrow(el).text().includes("AKIRA (1988)"));
     assert.equal(akira.length, 1);

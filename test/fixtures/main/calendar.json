@@ -1,0 +1,1828 @@
+{
+  "events": [
+    {
+      "date": "2026-09-29",
+      "title": "The Weight",
+      "permalink": "https://mspfilm.org/show/the-weight-2/",
+      "events": [
+        {
+          "event_id": 153027,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153028,
+          "start_time": "7:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 152996,
+          "start_time": "1:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 152997,
+          "start_time": "4:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 152998,
+          "start_time": "7:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 152698,
+          "start_time": "1:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 152699,
+          "start_time": "4:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 152700,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "title": "Teenage Sex and Death at Camp Miasma",
+      "permalink": "https://mspfilm.org/show/teenage-sex-and-death-at-camp-miasma-2/",
+      "events": [
+        {
+          "event_id": 152979,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152980,
+          "start_time": "4:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 152966,
+          "start_time": "1:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152967,
+          "start_time": "4:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152968,
+          "start_time": "7:20 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "title": "Hope",
+      "permalink": "https://mspfilm.org/show/hope/",
+      "events": [
+        {
+          "event_id": 153008,
+          "start_time": "3:30 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "The Weight",
+      "permalink": "https://mspfilm.org/show/the-weight-2/",
+      "events": [
+        {
+          "event_id": 153029,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153030,
+          "start_time": "7:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 152999,
+          "start_time": "1:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153000,
+          "start_time": "4:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153001,
+          "start_time": "7:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 152701,
+          "start_time": "1:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 152702,
+          "start_time": "4:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 152703,
+          "start_time": "7:10 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Teenage Sex and Death at Camp Miasma",
+      "permalink": "https://mspfilm.org/show/teenage-sex-and-death-at-camp-miasma-2/",
+      "events": [
+        {
+          "event_id": 152981,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152982,
+          "start_time": "4:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 152969,
+          "start_time": "1:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152970,
+          "start_time": "4:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152971,
+          "start_time": "7:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Hope",
+      "permalink": "https://mspfilm.org/show/hope/",
+      "events": [
+        {
+          "event_id": 153009,
+          "start_time": "3:30 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Gypsy 83: The Director’s Cut",
+      "permalink": "https://mspfilm.org/show/gypsy-83-the-directors-cut/",
+      "events": [
+        {
+          "event_id": 152891,
+          "start_time": "7:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "The Weight",
+      "permalink": "https://mspfilm.org/show/the-weight-2/",
+      "events": [
+        {
+          "event_id": 153031,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 152986,
+          "start_time": "9:55 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153002,
+          "start_time": "1:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153003,
+          "start_time": "4:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 152704,
+          "start_time": "1:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 152705,
+          "start_time": "4:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 152976,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152977,
+          "start_time": "9:45 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Teenage Sex and Death at Camp Miasma",
+      "permalink": "https://mspfilm.org/show/teenage-sex-and-death-at-camp-miasma-2/",
+      "events": [
+        {
+          "event_id": 152983,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152984,
+          "start_time": "4:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152985,
+          "start_time": "9:45 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 152972,
+          "start_time": "1:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152973,
+          "start_time": "4:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153004,
+          "start_time": "7:20 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153005,
+          "start_time": "9:40 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Hope",
+      "permalink": "https://mspfilm.org/show/hope/",
+      "events": [
+        {
+          "event_id": 153010,
+          "start_time": "3:30 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Opening Night: She’s The He!",
+      "permalink": "https://mspfilm.org/show/opening-night-shes-the-he/",
+      "events": [
+        {
+          "event_id": 152502,
+          "start_time": "7:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 152948,
+          "start_time": "7:00 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 152949,
+          "start_time": "9:50 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Capri First Thursday Films: Nickel Boys",
+      "permalink": "https://mspfilm.org/show/capri-first-thursday-films-nickel-boys/",
+      "events": [
+        {
+          "event_id": 153082,
+          "start_time": "7:00 pm",
+          "venue": "Capri Theater",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153138,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153139,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153140,
+          "start_time": "7:05 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153219,
+          "start_time": "1:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153220,
+          "start_time": "4:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153221,
+          "start_time": "7:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153222,
+          "start_time": "9:50 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153172,
+          "start_time": "1:05 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153173,
+          "start_time": "4:05 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153207,
+          "start_time": "9:45 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153188,
+          "start_time": "1:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153189,
+          "start_time": "4:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153190,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153191,
+          "start_time": "9:45 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153243,
+          "start_time": "1:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153244,
+          "start_time": "4:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153245,
+          "start_time": "7:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153246,
+          "start_time": "9:45 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Friday Feature Film: My Sunnyside",
+      "permalink": "https://mspfilm.org/show/friday-feature-film-my-sunnyside/",
+      "events": [
+        {
+          "event_id": 152507,
+          "start_time": "7:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Shorts 1: Thrills & Chills",
+      "permalink": "https://mspfilm.org/show/shorts-1-thrills-chills/",
+      "events": [
+        {
+          "event_id": 152520,
+          "start_time": "9:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Shorts 2: Comedy",
+      "permalink": "https://mspfilm.org/show/shorts-2-comedy/",
+      "events": [
+        {
+          "event_id": 152523,
+          "start_time": "12:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153208,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153223,
+          "start_time": "1:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153224,
+          "start_time": "4:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153225,
+          "start_time": "7:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153226,
+          "start_time": "9:50 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153192,
+          "start_time": "1:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153193,
+          "start_time": "4:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153194,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153195,
+          "start_time": "9:45 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153247,
+          "start_time": "1:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153248,
+          "start_time": "4:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153249,
+          "start_time": "7:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153250,
+          "start_time": "9:45 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Matinee Replay: She’s The He!",
+      "permalink": "https://mspfilm.org/show/matinee-replay-shes-the-he/",
+      "events": [
+        {
+          "event_id": 152510,
+          "start_time": "2:30 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153141,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153142,
+          "start_time": "7:05 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Shorts 3: Documentary",
+      "permalink": "https://mspfilm.org/show/shorts-3-documentary/",
+      "events": [
+        {
+          "event_id": 152526,
+          "start_time": "4:30 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Saturday Night Spotlight: Hunky Jesus",
+      "permalink": "https://mspfilm.org/show/saturday-night-spotlight-hunky-jesus/",
+      "events": [
+        {
+          "event_id": 152513,
+          "start_time": "6:30 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Shorts 4: Altered Realities",
+      "permalink": "https://mspfilm.org/show/shorts-4-altered-realities/",
+      "events": [
+        {
+          "event_id": 152529,
+          "start_time": "8:30 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-03",
+      "title": "Killer Klowns From Outer Space",
+      "permalink": "https://mspfilm.org/show/killer-klowns-from-outer-space/",
+      "events": [
+        {
+          "event_id": 152894,
+          "start_time": "10:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Shorts 5: When Sparks Fly",
+      "permalink": "https://mspfilm.org/show/shorts-5-when-sparks-fly/",
+      "events": [
+        {
+          "event_id": 152532,
+          "start_time": "1:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153143,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153144,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153227,
+          "start_time": "1:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153228,
+          "start_time": "4:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153229,
+          "start_time": "7:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153196,
+          "start_time": "1:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153197,
+          "start_time": "4:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153198,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153251,
+          "start_time": "1:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153252,
+          "start_time": "4:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153253,
+          "start_time": "7:20 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Shorts 6: Everything Changes",
+      "permalink": "https://mspfilm.org/show/shorts-6-everything-changes/",
+      "events": [
+        {
+          "event_id": 152535,
+          "start_time": "3:00 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Closing Presentation: Beginning While Ending: A Life Like Most Others",
+      "permalink": "https://mspfilm.org/show/closing-presentation-beginning-while-ending-a-life-like-most-others/",
+      "events": [
+        {
+          "event_id": 152517,
+          "start_time": "5:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153209,
+          "start_time": "7:05 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153145,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153146,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153147,
+          "start_time": "7:05 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153230,
+          "start_time": "1:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153231,
+          "start_time": "4:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153232,
+          "start_time": "7:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153210,
+          "start_time": "1:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153211,
+          "start_time": "4:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153212,
+          "start_time": "7:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153199,
+          "start_time": "1:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153200,
+          "start_time": "4:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153201,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153175,
+          "start_time": "1:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153176,
+          "start_time": "4:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153177,
+          "start_time": "7:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153148,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153149,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153150,
+          "start_time": "7:05 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153233,
+          "start_time": "1:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153234,
+          "start_time": "4:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153235,
+          "start_time": "7:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153213,
+          "start_time": "1:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153214,
+          "start_time": "4:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153215,
+          "start_time": "7:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153202,
+          "start_time": "1:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153203,
+          "start_time": "4:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153204,
+          "start_time": "7:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153178,
+          "start_time": "1:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153179,
+          "start_time": "4:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153180,
+          "start_time": "7:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153151,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153152,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153236,
+          "start_time": "1:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153237,
+          "start_time": "4:00 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153238,
+          "start_time": "7:00 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153216,
+          "start_time": "1:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153217,
+          "start_time": "4:05 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153205,
+          "start_time": "1:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153206,
+          "start_time": "4:10 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153254,
+          "start_time": "7:10 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153181,
+          "start_time": "1:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153182,
+          "start_time": "4:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153183,
+          "start_time": "7:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "title": "Opening Night: La Bola Negra",
+      "permalink": "https://mspfilm.org/show/opening-night-la-bola-negra/",
+      "events": [
+        {
+          "event_id": 151930,
+          "start_time": "7:30 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 152361,
+          "start_time": "7:45 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Ha-Chan, Shake Your Booty",
+      "permalink": "https://mspfilm.org/show/ha-chan-shake-your-booty/",
+      "events": [
+        {
+          "event_id": 153153,
+          "start_time": "1:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153154,
+          "start_time": "4:00 pm",
+          "venue": "Theater 5",
+          "format": ""
+        },
+        {
+          "event_id": 153155,
+          "start_time": "7:05 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Digger",
+      "permalink": "https://mspfilm.org/show/digger/",
+      "events": [
+        {
+          "event_id": 153239,
+          "start_time": "1:00 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153240,
+          "start_time": "4:00 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153241,
+          "start_time": "7:00 pm",
+          "venue": "Theater 4",
+          "format": ""
+        },
+        {
+          "event_id": 153242,
+          "start_time": "9:50 pm",
+          "venue": "Theater 4",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Bad Apples",
+      "permalink": "https://mspfilm.org/show/bad-apples/",
+      "events": [
+        {
+          "event_id": 153174,
+          "start_time": "1:05 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153218,
+          "start_time": "9:45 pm",
+          "venue": "Theater 5",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Primetime",
+      "permalink": "https://mspfilm.org/show/primetime/",
+      "events": [
+        {
+          "event_id": 153255,
+          "start_time": "1:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153256,
+          "start_time": "4:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153257,
+          "start_time": "7:10 pm",
+          "venue": "Theater 3",
+          "format": ""
+        },
+        {
+          "event_id": 153258,
+          "start_time": "9:45 pm",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "The History of Concrete",
+      "permalink": "https://mspfilm.org/show/the-history-of-concrete/",
+      "events": [
+        {
+          "event_id": 153184,
+          "start_time": "1:20 pm",
+          "venue": "Theater 1",
+          "format": ""
+        },
+        {
+          "event_id": 153185,
+          "start_time": "4:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153186,
+          "start_time": "7:20 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 153187,
+          "start_time": "9:40 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "Gugu’s World (Feito Pipa)",
+      "permalink": "https://mspfilm.org/show/gugus-world-feito-pipa/",
+      "events": [
+        {
+          "event_id": 152712,
+          "start_time": "5:00 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "title": "On Behalf of My Son (Vicentina Pede Desculpas)",
+      "permalink": "https://mspfilm.org/show/on-behalf-of-my-son-vicentina-pede-desculpas/",
+      "events": [
+        {
+          "event_id": 152733,
+          "start_time": "7:30 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "NAZA",
+      "permalink": "https://mspfilm.org/show/naza/",
+      "events": [
+        {
+          "event_id": 152907,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152908,
+          "start_time": "4:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152909,
+          "start_time": "7:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "TheyDream + Belong",
+      "permalink": "https://mspfilm.org/show/theydream-belong/",
+      "events": [
+        {
+          "event_id": 152742,
+          "start_time": "5:00 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Cine Latino Shorts",
+      "permalink": "https://mspfilm.org/show/cine-latino-shorts-2/",
+      "events": [
+        {
+          "event_id": 152753,
+          "start_time": "7:15 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "title": "Ashes (Ceniza en la Boca)",
+      "permalink": "https://mspfilm.org/show/ashes-ceniza-en-la-boca/",
+      "events": [
+        {
+          "event_id": 152715,
+          "start_time": "9:45 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Blood Wedding (Bodas de sangre)",
+      "permalink": "https://mspfilm.org/show/blood-wedding-bodas-de-sangre/",
+      "events": [
+        {
+          "event_id": 152750,
+          "start_time": "11:00 am",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "NAZA",
+      "permalink": "https://mspfilm.org/show/naza/",
+      "events": [
+        {
+          "event_id": 152910,
+          "start_time": "11:15 am",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152911,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152912,
+          "start_time": "4:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152913,
+          "start_time": "7:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "The Newcomers (Los nuevos)",
+      "permalink": "https://mspfilm.org/show/the-newcomers-los-nuevos/",
+      "events": [
+        {
+          "event_id": 152756,
+          "start_time": "11:30 am",
+          "venue": "Theater 3",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Light Memories + Jason (Eco de luz)",
+      "permalink": "https://mspfilm.org/show/light-memories-jason-eco-de-luz/",
+      "events": [
+        {
+          "event_id": 152727,
+          "start_time": "1:30 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "The Garden We Dreamed (El jardín que soñamos)",
+      "permalink": "https://mspfilm.org/show/the-garden-we-dreamed-el-jardin-que-sonamos/",
+      "events": [
+        {
+          "event_id": 152724,
+          "start_time": "4:30 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "The Meltdown (El Deshielo)",
+      "permalink": "https://mspfilm.org/show/the-meltdown-el-deshielo/",
+      "events": [
+        {
+          "event_id": 152730,
+          "start_time": "7:00 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-10",
+      "title": "Campeón Gabacho + Birds of Paradise",
+      "permalink": "https://mspfilm.org/show/campeon-gabacho-birds-of-paradise/",
+      "events": [
+        {
+          "event_id": 152718,
+          "start_time": "9:15 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Kid Flicks: ¡Hola Cine! at Mia",
+      "permalink": "https://mspfilm.org/show/kid-flicks-hola-cine-at-mia-3/",
+      "events": [
+        {
+          "event_id": 152747,
+          "start_time": "10:30 am",
+          "venue": "Minneapolis Institute of Art",
+          "format": ""
+        },
+        {
+          "event_id": 152745,
+          "start_time": "12:00 pm",
+          "venue": "Minneapolis Institute of Art",
+          "format": ""
+        },
+        {
+          "event_id": 152746,
+          "start_time": "1:30 pm",
+          "venue": "Minneapolis Institute of Art",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "A Song For My Land  (Una canción para mi tierra) + Nuestro Norte",
+      "permalink": "https://mspfilm.org/show/a-song-for-my-land-nuestro-norte-una-cancion-para-mi-tierra/",
+      "events": [
+        {
+          "event_id": 152739,
+          "start_time": "12:00 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "NAZA",
+      "permalink": "https://mspfilm.org/show/naza/",
+      "events": [
+        {
+          "event_id": 152914,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152915,
+          "start_time": "4:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152916,
+          "start_time": "7:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Cine Latino Food & Wine Experience",
+      "permalink": "https://mspfilm.org/show/cine-latino-food-drink-experience/",
+      "events": [
+        {
+          "event_id": 152493,
+          "start_time": "2:00 pm",
+          "venue": "Aster River Room",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Daughters of the Forest (Hijas del Bosque: Crónicas del Micelio)",
+      "permalink": "https://mspfilm.org/show/daughters-of-the-forest-hijas-del-bosque-cronicas-del-micelio/",
+      "events": [
+        {
+          "event_id": 152721,
+          "start_time": "2:15 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "One of Our Own: Joan Roca’s Legacy (Uno de los nuestros: Legado de Joan Roca)",
+      "permalink": "https://mspfilm.org/show/one-of-our-own-joan-rocas-legacy-uno-de-los-nuestros-legado-de-joan-roca/",
+      "events": [
+        {
+          "event_id": 152736,
+          "start_time": "5:00 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "title": "Closing Night: Old Bandits (Velhos Bandidos)",
+      "permalink": "https://mspfilm.org/show/closing-night-old-bandits-velhos-bandidos/",
+      "events": [
+        {
+          "event_id": 151933,
+          "start_time": "7:30 pm",
+          "venue": "Theater 1",
+          "format": ""
+        }
+      ]
+    },
+    {
+      "date": "2026-10-12",
+      "title": "NAZA",
+      "permalink": "https://mspfilm.org/show/naza/",
+      "events": [
+        {
+          "event_id": 152917,
+          "start_time": "1:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152918,
+          "start_time": "4:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        },
+        {
+          "event_id": 152919,
+          "start_time": "7:15 pm",
+          "venue": "Theater 2",
+          "format": ""
+        }
+      ]
+    }
+  ]
+}

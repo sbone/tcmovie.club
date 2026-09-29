@@ -21,6 +21,7 @@ for (const source of ["heights", "riverview", "parkway"]) {
   }
 }
 fixtures.set("https://www.trylon.org/feed/my-calendar-google/", await read("trylon", "calendar.ics"));
+const mainCalendar = JSON.parse(await read("main", "calendar.json"));
 
 function fakeClock() {
   let now = morning;
@@ -31,12 +32,17 @@ function fakeClock() {
     assert.match(init.headers["User-Agent"], /tc-movie-cal/);
     const path = new URL(url).pathname;
     let body = path === "/robots.txt" ? "User-agent: *\nDisallow:\n" : fixtures.get(url);
+    if (path === "/wp-json/gecko-theme/v1/calendar-events") {
+      const q = new URL(url).searchParams;
+      body = JSON.stringify({ events: mainCalendar.events.filter(group =>
+        group.date >= q.get("start_date") && group.date < q.get("end_date")) });
+    }
     if (!body && path.startsWith("/base/index/")) {
       const date = new Date(`${path.slice(-10)}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
       body = `<h2>Now Playing - ${date}</h2><div class="blog-sidebar"><ul class="playing">there aren't any showtimes scheduled at the moment</ul></div>`;
     }
     assert.ok(body, `Unexpected request: ${url}`);
-    const headers = { "Content-Type": path === "/robots.txt" ? "text/plain" : path.includes("/feed/") ? "text/calendar" : "text/html", Date: new Date(now).toUTCString(), ETag: '"fixture"' };
+    const headers = { "Content-Type": path === "/robots.txt" ? "text/plain" : path.includes("/feed/") ? "text/calendar" : path.startsWith("/wp-json/") ? "application/json" : "text/html", Date: new Date(now).toUTCString(), ETag: '"fixture"' };
     return init.headers["If-None-Match"] ? new Response(null, { status: 304, headers }) : new Response(body, { headers });
   } };
   return { clock, calls, setTime: value => { now = value; } };
@@ -56,6 +62,8 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     const heights = await readSource(storage, "heights");
     assert.equal(heights.state.snapshot.screenings.length, 38);
     assert.equal(heights.state.snapshot.screenings.find(show => show.id === "heights:570").format, "DCP");
+    assert.equal((await readSource(storage, "main")).state.snapshot.screenings.length, 194);
+    assert.ok(fake.calls.some(call => call.url.includes("start_date=2026-09-29&end_date=2026-10-13&_locale=user")));
     assert.ok(first.sources.find(source => source.sourceId === "parkway").diagnostics.some(note => note.message.includes("Request limit")));
     assert.ok(first.sources.find(source => source.sourceId === "riverview").diagnostics.some(note => note.record === "Canoe Dig It?"));
     for (const host of new Set(fake.calls.map(call => new URL(call.url).host))) {
@@ -73,7 +81,7 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     const updated = await readSource(storage, "heights");
     assert.equal(updated.state.snapshot.changedAt, heights.state.snapshot.changedAt);
     assert.ok(updated.state.snapshot.checkedAt > heights.state.snapshot.checkedAt);
-    for (const source of ["trylon", "heights", "parkway", "riverview"]) {
+    for (const source of ["trylon", "heights", "parkway", "riverview", "main"]) {
       assert.ok((await readHttp(join(storage, "http"), source)).requestsToday <= 12);
     }
     assert.ok(fake.calls.some(call => call.init.headers["If-None-Match"] === '"fixture"'));
@@ -92,7 +100,7 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     assert.equal((await readSource(storage, "parkway")).state.kind, "ready");
     const html = await readFile(join(output, "index.html"), "utf8");
     assert.match(html, /Import failed/);
-    assert.equal(JSON.parse(await readFile(join(output, "sources.json"))).length, 4);
+    assert.equal(JSON.parse(await readFile(join(output, "sources.json"))).length, 5);
     let forbidden = 0;
     fake.clock.fetch = async (url, init) => { if (url.includes("heightstheater")) forbidden++; return oldFetch(url, init); };
     fake.setTime(morning + dayMs + 12 * 3_600_000);
@@ -168,7 +176,7 @@ test("access failures remain paused and Trylon's 24-hour guard survives the spri
   try {
     const httpDirectory = join(directory, "http");
     await mkdir(httpDirectory);
-    for (const source of ["heights", "parkway", "riverview"]) {
+    for (const source of ["heights", "parkway", "riverview", "main"]) {
       await writeFile(join(httpDirectory, `${source}.json`), JSON.stringify({ paused: "Review required" }));
     }
     const options = { contact: "test@example.com", storage: directory, output: join(directory, "site"), enableTrylon: true };

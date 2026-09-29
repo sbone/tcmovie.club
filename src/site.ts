@@ -6,7 +6,7 @@ import { gzipSync } from "node:zlib";
 import type { Diagnostic } from "./parse.js";
 
 export const venueNames = {
-  trylon: "Trylon", heights: "Heights", parkway: "Parkway", riverview: "Riverview",
+  trylon: "Trylon", heights: "Heights", parkway: "Parkway", riverview: "Riverview", main: "The Main Cinema",
 } as const;
 
 export type SourceInfo = Readonly<{
@@ -69,7 +69,8 @@ ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : "<p>No 
 <ul><li><a href="https://www.trylon.org/">Trylon Cinema</a></li>
 <li><a href="https://www.heightstheater.com/">Heights Theater</a></li>
 <li><a href="https://theparkwaytheater.com/">The Parkway Theater</a></li>
-<li><a href="https://www.riverviewtheater.com/">Riverview Theater</a></li></ul>
+<li><a href="https://www.riverviewtheater.com/">Riverview Theater</a></li>
+<li><a href="https://mspfilm.org/">The Main Cinema</a></li></ul>
 </section></main>
 <footer><h2>Source freshness</h2>${sources.map(source => `<p><strong>${venueNames[source.sourceId]}</strong> — ${source.checkedAt ? escape(stamp.format(new Date(source.checkedAt))) : "Never checked"}${source.stale ? " · May be stale" : ""}. ${escape(source.note)}</p>`).join("\n")}</footer></body></html>`;
 }

@@ -9,13 +9,14 @@ import { parseTrylon } from "./sources/trylon.js";
 import { parseHeights, parseHeightsCalendar } from "./sources/heights.js";
 import { parseRiverview, parseRiverviewSpecials } from "./sources/riverview.js";
 import { parseParkway } from "./sources/parkway.js";
+import { parseMain } from "./sources/main.js";
 
 const metadataSchema = z.object({ sourceUrl: httpUrlSchema, responseAt: instantSchema });
 
 export async function loadCapturedSource(sourceId: SourceId, directory: string) {
   const read = (name: string) => readFile(join(directory, sourceId, name), "utf8");
-  const file = sourceId === "trylon" ? "calendar.ics" : sourceId === "parkway" ? "movies.html" : "home.html";
-  const metadataFile = sourceId === "trylon" ? "metadata.json" : file.replace(".html", ".metadata.json");
+  const file = sourceId === "trylon" ? "calendar.ics" : sourceId === "main" ? "calendar.json" : sourceId === "parkway" ? "movies.html" : "home.html";
+  const metadataFile = sourceId === "trylon" ? "metadata.json" : file.replace(/\.(html|json)$/, ".metadata.json");
   const metadata = metadataSchema.parse(JSON.parse(await read(metadataFile)));
   const raw = await read(file);
   const files = (await readdir(join(directory, sourceId))).sort();
@@ -34,6 +35,7 @@ export async function loadCapturedSource(sourceId: SourceId, directory: string) 
       }
       case "heights": return combineParsed([parseHeights(raw), ...await Promise.all(supplemental.map(async name =>
         parseHeightsCalendar(await read(name.replace(".metadata.json", ".html")))))]);
+      case "main": return parseMain(raw);
       case "riverview":
       case "parkway": {
         const details: Record<string, string> = {};

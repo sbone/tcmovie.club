@@ -13,6 +13,7 @@ live under `test/fixtures/<source>/`.
 | Heights | Homepage plus monthly calendars. Dates come from the calendar month/year and day cell; ticket IDs identify showings. | Excludes passes. Calendar omissions of DCP are filled from explicit homepage values; conflicting facts reject the import. Ticket actions are never requested. |
 | Riverview | Dated listings, saved film details, and Special Screenings announcements. Detail years resolve against navigation plus the prior week. Specials resolve against the homepage date and weekday within the prior week / next 180 days. | Daily listings cover September 29–October 1. October 2 explicitly has no scheduled shows. Missing start times produce diagnostics; special events outside the daily schedule remain included. Akira is a reduced source-derived fixture. |
 | Parkway | Movies summary cards plus detail schedules. Explicit Movie, Film, Screening or Show starts confirm a film/program start. Multiple starts produce separate records with paired doors times. | All seven events in the preview have details. Later dates still retain uncertain event starts. Ambiguous time pairings reject the import. Multi-event passes are excluded. |
+| The Main Cinema | Public calendar JSON for an exact 14-day date range. Event IDs identify showings; displayed `start_time` is resolved in Chicago time. | Includes only events labeled Theater 1–5; other venues and explicit book launches are excluded. The API's UTC `start` disagrees with displayed clock times and is ignored. Future dates may not have posted showtimes yet. |
 
 Trylon recognizes club membership events; Heights and Parkway recognize members-only
 titles. Riverview access remains unknown. Unrecognized access and availability stay
@@ -30,7 +31,8 @@ See [source research](../../docs/source-research.md) for acquisition constraints
 `collect.ts` now discovers live inputs with the bounded HTTP client in `../http.ts`.
 It feeds these same pure parsers without loading fixtures or reviewed overrides.
 Heights follows monthly calendars, Riverview follows dated pages and specials,
-and Parkway follows movie detail links. Missing pages and uncertain starts remain
+Parkway follows movie detail links, and The Main requests one dated JSON window.
+Missing pages and uncertain starts remain
 diagnostics in stored state and published `sources.json`. See the root README for
 configuration, request limits, and scheduling. The table above describes the
 historical offline fixtures; it is not a live coverage guarantee.

@@ -21,6 +21,7 @@ const notes = {
   heights: "Saved homepage and September/October calendars cover the preview window.",
   riverview: "Saved daily listings through October 1 plus special screenings. October 2 is explicitly not yet scheduled.",
   parkway: "Saved movie listing and detail schedules confirm film/program starts through October 12; later times may be unconfirmed.",
+  main: "Saved 14-day calendar snapshot; only The Main Cinema's Theater 1–5 events are included.",
 };
 let rejected = false;
 for (const sourceId of sourceIdSchema.options) {
@@ -41,5 +42,5 @@ for (const sourceId of sourceIdSchema.options) {
 }
 const combined = dedupe(screenings);
 await writeSite(output, dates, combined, sources);
-console.log(`Generated 14 date pages from ${combined.length} screenings across four saved sources. No network requests.`);
+console.log(`Generated 14 date pages from ${combined.length} screenings across ${sourceIdSchema.options.length} saved sources. No network requests.`);
 if (rejected) process.exitCode = 1;
