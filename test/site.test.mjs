@@ -22,6 +22,7 @@ test("HTML renders complete listings and accessible theater toggles", () => {
   assert.equal($("script").length, 1);
   assert.equal($("#theater-filters[hidden] button[data-theater][aria-pressed=true]").length, 5);
   assert.equal($(".screenings li[data-venue=trylon]").length, 1);
+  assert.equal($(".screenings li[data-venue=trylon] .venue-badge").text(), "Trylon");
   assert.match($("noscript").text(), /All theaters are shown/);
   assert.ok(gzipSync(html).length < 25000);
 });

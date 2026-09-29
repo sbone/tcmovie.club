@@ -59,7 +59,7 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
     .sort((a, b) => a.start.at.localeCompare(b.start.at) || a.title.localeCompare(b.title));
   const links = dates.map(value => `<a href="/${escape(value)}/"${value === date ? ' aria-current="date"' : ""}>${escape(dayLabel.format(new Date(`${value}T12:00:00Z`)))}</a>`).join(" ");
   const rows = day.map(item => {
-    const labels = [venueNames[item.venueId], item.format, item.series,
+    const labels = [item.format, item.series,
       item.access === "members-only" ? "Members only" : null,
       item.status.kind === "cancelled" ? "Cancelled"
         : item.status.availability === "sold-out" ? "Sold out" : null,
@@ -69,7 +69,7 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
     ].filter((value): value is string => value !== null);
     return `<li data-venue="${item.venueId}"><time datetime="${escape(item.start.at)}">${escape(clock.format(new Date(item.start.at)))}</time>
 <div><a href="${escape(item.ticketUrl ?? item.eventUrl)}">${escape(item.title)}</a>
-<p>${labels.map(escape).join(" · ")}</p></div></li>`;
+<p><span class="venue-badge">${escape(venueNames[item.venueId])}</span>${labels.length ? ` · ${labels.map(escape).join(" · ")}` : ""}</p></div></li>`;
   }).join("\n");
   return `<!doctype html>
 <html lang="en" prefix="og: https://ogp.me/ns#"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -92,17 +92,31 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
 <meta name="twitter:description" content="${escape(description)}">
 <meta name="twitter:image" content="${image}">
 <meta name="twitter:image:alt" content="${imageAlt}">
-<style>body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:#20231f;background:#faf9f4}a{color:#215a44;text-underline-offset:.2em}nav{display:flex;gap:1rem;overflow-x:auto;padding:.5rem 0}nav a{flex:none;padding:.4rem 0}nav [aria-current]{font-weight:700}h1{font-size:1.65rem}.screenings{list-style:none;padding:0}.screenings li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid #d5d8ce}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid #a16920;padding-left:.75rem}:focus-visible{outline:3px solid #a16920;outline-offset:4px}
-[hidden]{display:none!important}#theater-filters{border:0;padding:0;margin:1.1rem 0 .5rem}#theater-filters legend{font-size:.9rem;font-weight:650;margin-bottom:.5rem}.theater-buttons{display:flex;flex-wrap:wrap;gap:.4rem}.theater-buttons button{font:inherit;font-size:.9rem;min-height:44px;padding:.4rem .7rem;border:1px solid #215a44;border-radius:.3rem;background:transparent;color:#215a44;cursor:pointer}.theater-buttons button[aria-pressed=true]{background:#215a44;color:#faf9f4}.theater-buttons button[data-theater]::before{content:"";display:inline-block;width:1em}.theater-buttons button[aria-pressed=true]::before{content:"✓"}.theater-buttons button:disabled{opacity:.5;cursor:default}#filter-status{min-height:1.5em;margin:.5rem 0}</style></head>
-<body><header><p>tcmovie.club</p><nav aria-label="Dates">${links}</nav>
-<h1>${escape(date)}</h1><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p></header>
-<main>${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}
+<style>body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:#20231f;background:#faf9f4}a{color:#215a44;text-underline-offset:.2em}nav{display:flex;gap:.5rem;overflow-x:auto;padding:.5rem}nav a{flex:none;box-sizing:border-box;min-height:44px;padding:.45rem .65rem;border:1px solid transparent;border-radius:.3rem;text-decoration:none}nav [aria-current=date]{font-weight:700;background:#20231f;color:#faf9f4;border-color:currentColor;text-decoration:underline;text-decoration-thickness:2px}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}.screenings{list-style:none;padding:0}.screenings li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid #d5d8ce}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid #a16920;padding-left:.75rem}:focus-visible{outline:3px solid #20231f;outline-offset:4px}
+/* Dark colors contrast with cream; badge tints mix 10% theater color with cream. */
+[data-theater=trylon],[data-venue=trylon]{--venue-color:#215a44;--venue-tint:#e4e9e2}
+[data-theater=heights],[data-venue=heights]{--venue-color:#704470;--venue-tint:#ece7e7}
+[data-theater=parkway],[data-venue=parkway]{--venue-color:#91451f;--venue-tint:#f0e7df}
+[data-theater=riverview],[data-venue=riverview]{--venue-color:#285f8f;--venue-tint:#e5eaea}
+[data-theater=main],[data-venue=main]{--venue-color:#515d6b;--venue-tint:#e9e9e6}
+.venue-badge{display:inline-block;padding:.1em .45em;border-radius:.25rem;font-weight:600;color:var(--venue-color);background:var(--venue-tint)}
+[hidden]{display:none!important}#theater-filters{border:0;padding:0;margin:1.1rem 0 .5rem}#theater-filters legend{font-size:.9rem;font-weight:650;margin-bottom:.5rem}.theater-buttons{display:flex;flex-wrap:wrap;gap:.6rem}.theater-buttons button{font:inherit;font-size:.9rem;min-height:44px;padding:.4rem .7rem;border:1px solid var(--venue-color,#515d6b);border-radius:.3rem;background:#faf9f4;color:var(--venue-color,#515d6b);cursor:pointer}.theater-buttons button[aria-pressed=true]{background:var(--venue-color);color:#faf9f4}.theater-buttons button[data-theater]::before{content:"";display:inline-block;width:1em}.theater-buttons button[aria-pressed=true]::before{content:"✓"}.theater-buttons button:disabled{border-color:#d5d8ce;cursor:default}#filter-status{min-height:1.5em;margin:.5rem 0}
+@media(hover:hover){a:hover{text-decoration-thickness:.14em}nav a:not([aria-current]):hover{background:#e9e9e6;text-decoration:underline}.theater-buttons button:not(:disabled):hover{background:var(--venue-tint,#e9e9e6)}.theater-buttons button[aria-pressed=true]:hover{background:var(--venue-color);box-shadow:inset 0 0 0 1px #faf9f4}}
+.theater-buttons button:not(:disabled):active{box-shadow:inset 0 0 0 2px currentColor}
+h1{font-size:1.1rem;font-weight:650;margin:1rem 0 .2rem}.site-name a{display:inline-block;padding:.2rem 0;color:inherit;text-decoration:none}.site-name a:hover{text-decoration:underline}.schedule-notes{margin-top:1.25rem}
+</style></head>
+<body><header><p class="site-name"><a href="/">tcmovie.club</a></p>
+<h1>Screenings on<span class="visually-hidden"> ${escape(label)}</span></h1>
+<nav aria-label="Dates">${links}</nav></header>
+<main>
 <fieldset id="theater-filters" hidden><legend>Theaters</legend><div class="theater-buttons">
 ${Object.entries(venueNames).map(([id, name]) => `<button type="button" data-theater="${id}" aria-pressed="true">${id === "main" ? "Main" : escape(name)}</button>`).join("\n")}
 <button type="button" data-reset>Show all</button></div></fieldset>
 <noscript><p>All theaters are shown. Enable JavaScript to filter by theater.</p></noscript>
 <p id="filter-status" role="status" aria-live="polite">${rows ? "" : "No screenings found in the saved data for this date."}</p>
 ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
+<div class="schedule-notes"><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p>
+${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}</div>
 <section aria-labelledby="about-tcmc"><h2 id="about-tcmc">About TCMC</h2>
 <p>Built by a film enthusiast who wanted one place to see what's playing on a random night. The Twin Cities have so many unique theaters. This is an invitation to explore them.</p>
 <p>Twin Cities Movie Screenings brings showtimes from these theaters into one calendar:</p>
@@ -112,5 +126,6 @@ ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
 <li><a href="https://www.riverviewtheater.com/">Riverview Theater</a></li>
 <li><a href="https://mspfilm.org/">The Main Cinema</a></li></ul>
 </section></main>
-<footer><h2>Source freshness</h2>${sources.map(source => `<p><strong>${venueNames[source.sourceId]}</strong> — ${source.checkedAt ? escape(stamp.format(new Date(source.checkedAt))) : "Never checked"}${source.stale ? " · May be stale" : ""}. ${escape(source.note)}</p>`).join("\n")}</footer><script>(${initTheaterFilters.toString()})();</script></body></html>`;
+<footer><h2>Source freshness</h2>${sources.map(source => `<p><strong>${venueNames[source.sourceId]}</strong> — ${source.checkedAt ? escape(stamp.format(new Date(source.checkedAt))) : "Never checked"}${source.stale ? " · May be stale" : ""}. ${escape(source.note)}</p>`).join("\n")}</footer><script>(${initTheaterFilters.toString()})();
+document.querySelector('nav [aria-current="date"]')?.scrollIntoView({block:"nearest",inline:"center"});</script></body></html>`;
 }
