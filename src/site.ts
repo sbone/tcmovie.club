@@ -1,6 +1,9 @@
 import { startLabel, timeZone } from "./domain.js";
 import type { Screening, SourceId } from "./domain.js";
 import { chicagoDate } from "./time.js";
+import { mkdir, writeFile } from "node:fs/promises";
+import { gzipSync } from "node:zlib";
+import type { Diagnostic } from "./parse.js";
 
 export const venueNames = {
   trylon: "Trylon", heights: "Heights", parkway: "Parkway", riverview: "Riverview",
@@ -11,6 +14,10 @@ export type SourceInfo = Readonly<{
   checkedAt: string | null;
   stale: boolean;
   note: string;
+  changedAt?: string | null;
+  diagnostics?: readonly Diagnostic[];
+  error?: string | null;
+  incomplete?: boolean;
 }>;
 
 const escape = (text: string): string => text.replace(/[&<>"']/g, char => ({
@@ -19,6 +26,18 @@ const escape = (text: string): string => text.replace(/[&<>"']/g, char => ({
 const clock = new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", minute: "2-digit" });
 const stamp = new Intl.DateTimeFormat("en-US", { timeZone, dateStyle: "medium", timeStyle: "short" });
 const dayLabel = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" });
+
+export async function writeSite(output: string, dates: readonly string[], screenings: readonly Screening[], sources: readonly SourceInfo[]) {
+  for (const date of dates) {
+    const html = renderDate(date, screenings, sources, dates);
+    if (gzipSync(html).length > 25000) throw new Error(`HTML exceeds compressed 25 KB budget: ${date}`);
+    await mkdir(`${output}/${date}`, { recursive: true });
+    await writeFile(`${output}/${date}/index.html`, html);
+    if (date === dates[0]) await writeFile(`${output}/index.html`, html);
+  }
+  await writeFile(`${output}/screenings.json`, `${JSON.stringify(screenings, null, 2)}\n`);
+  await writeFile(`${output}/sources.json`, `${JSON.stringify(sources, null, 2)}\n`);
+}
 
 export function renderDate(date: string, screenings: readonly Screening[], sources: readonly SourceInfo[], dates: readonly string[] = [date]): string {
   const day = screenings.filter(item => chicagoDate(item.start.at) === date)
@@ -43,7 +62,7 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
 <style>body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:#20231f;background:#faf9f4}a{color:#215a44;text-underline-offset:.2em}nav{display:flex;gap:1rem;overflow-x:auto;padding:.5rem 0}nav a{flex:none;padding:.4rem 0}nav [aria-current]{font-weight:700}h1{font-size:1.65rem}ul{list-style:none;padding:0}li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid #d5d8ce}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid #a16920;padding-left:.75rem}:focus-visible{outline:3px solid #a16920;outline-offset:4px}</style></head>
 <body><header><p>tcmovie.club</p><nav aria-label="Dates">${links}</nav>
 <h1>${escape(date)}</h1><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p></header>
-<main>${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : ""}
+<main>${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}
 ${rows ? `<ul aria-label="Screenings">${rows}</ul>` : "<p>No screenings found in the saved data for this date.</p>"}</main>
 <footer><h2>Source freshness</h2>${sources.map(source => `<p><strong>${venueNames[source.sourceId]}</strong> — ${source.checkedAt ? escape(stamp.format(new Date(source.checkedAt))) : "Never checked"}${source.stale ? " · May be stale" : ""}. ${escape(source.note)}</p>`).join("\n")}</footer></body></html>`;
 }

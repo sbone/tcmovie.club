@@ -1,4 +1,4 @@
-# Offline source adapters
+# Source adapters
 
 Each parser accepts saved text, returns a tagged result with screenings and
 diagnostics, and makes no network requests. Shared validation rejects invalid
@@ -25,4 +25,12 @@ remain identical after reducing those fixtures.
 It uses recorded homepage HTTP response dates conservatively for freshness,
 including potentially cached responses, rather than the time the demo is generated.
 
-See [source research](../../docs/source-research.md) before implementing acquisition.
+See [source research](../../docs/source-research.md) for acquisition constraints.
+
+`collect.ts` now discovers live inputs with the bounded HTTP client in `../http.ts`.
+It feeds these same pure parsers without loading fixtures or reviewed overrides.
+Heights follows monthly calendars, Riverview follows dated pages and specials,
+and Parkway follows movie detail links. Missing pages and uncertain starts remain
+diagnostics in stored state and published `sources.json`. See the root README for
+configuration, request limits, and scheduling. The table above describes the
+historical offline fixtures; it is not a live coverage guarantee.

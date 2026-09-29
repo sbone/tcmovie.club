@@ -1,7 +1,7 @@
 # Source inspection — September 29, 2026
 
 This was a bounded inspection, not a crawl or an enabled ingestion job. There is
-no network-fetching application code yet. Results describe these sampled responses,
+no network-fetching application code at the time of inspection. Results describe these sampled responses,
 not guaranteed feeds, complete coverage, or permission from the operators.
 
 ## Decisions from this session
@@ -238,7 +238,12 @@ reducing the fixtures. Other newly committed HTML is sanitized captured markup.
 Capture timestamps stay conservative; indexed supplements have no fabricated HTTP
 Date, and replaying the inputs never marks them fresh.
 
-## Proposed initial collection policy — not implemented or scheduled
+## Initial collection policy — collector implemented, not scheduled
+
+The collector now implements these limits; see [setup](../README.md#collector).
+Trylon remains disabled by default. Automated verification uses simulated HTTP
+responses, not new theater requests. This document's source observations remain
+the historical evidence from the inspection above.
 
 - Run one server job at **7 AM and 7 PM America/Chicago**, using local timezone
   scheduling rather than fixed UTC hours. **Trylon: morning only, at least 24 hours

@@ -2,9 +2,9 @@ import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { httpUrlSchema, instantSchema, screeningSchema } from "./domain.js";
-import type { Result, Screening, SourceId } from "./domain.js";
-import { finishParse } from "./parse.js";
-import type { Diagnostic, ParsedSource } from "./parse.js";
+import type { Result, SourceId } from "./domain.js";
+import { combineParsed, finishParse } from "./parse.js";
+import type { ParsedSource } from "./parse.js";
 import { parseTrylon } from "./sources/trylon.js";
 import { parseHeights, parseHeightsCalendar } from "./sources/heights.js";
 import { parseRiverview, parseRiverviewSpecials } from "./sources/riverview.js";
@@ -20,18 +20,6 @@ export async function loadCapturedSource(sourceId: SourceId, directory: string) 
   const raw = await read(file);
   const files = (await readdir(join(directory, sourceId))).sort();
   const supplemental = files.filter(name => name.endsWith(".metadata.json") && name !== metadataFile);
-  const combine = (results: readonly Result<ParsedSource, string>[]): Result<ParsedSource, string> => {
-    const screenings: Screening[] = [], diagnostics: Diagnostic[] = [];
-    for (const result of results) {
-      if (result.kind === "err") return result;
-      screenings.push(...result.value.screenings); diagnostics.push(...result.value.diagnostics);
-    }
-    // Calendar markup omits DCP where the homepage explicitly supplies it.
-    const formats = new Map(screenings.filter(item => item.format).map(item => [item.id, item.format]));
-    return { kind: "ok", value: finishParse(screenings.map(item => ({
-      ...item, format: item.format ?? formats.get(item.id) ?? null,
-    })), diagnostics) };
-  };
   const parse = async () => {
     switch (sourceId) {
       case "trylon": {
@@ -44,7 +32,7 @@ export async function loadCapturedSource(sourceId: SourceId, directory: string) 
         ], [...result.value.diagnostics, { kind: "warning", record: "reviewed.json",
           message: "Offline corrections from indexed film pages; see reviewed metadata for provenance" }]) };
       }
-      case "heights": return combine([parseHeights(raw), ...await Promise.all(supplemental.map(async name =>
+      case "heights": return combineParsed([parseHeights(raw), ...await Promise.all(supplemental.map(async name =>
         parseHeightsCalendar(await read(name.replace(".metadata.json", ".html")))))]);
       case "riverview":
       case "parkway": {
@@ -59,7 +47,7 @@ export async function loadCapturedSource(sourceId: SourceId, directory: string) 
           else if (sourceId === "riverview" && path === "/specialscreening") specials.push(parseRiverviewSpecials(html, raw));
           else details[path] = html;
         }
-        return sourceId === "riverview" ? combine([...listings.map(html => parseRiverview(html, details)), ...specials]) : parseParkway(raw, details);
+        return sourceId === "riverview" ? combineParsed([...listings.map(html => parseRiverview(html, details)), ...specials]) : parseParkway(raw, details);
       }
       default: return sourceId satisfies never;
     }

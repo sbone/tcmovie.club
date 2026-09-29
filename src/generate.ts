@@ -1,5 +1,3 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { gzipSync } from "node:zlib";
 import { resolve } from "node:path";
 import { instantSchema, sourceIdSchema, sourceScreenings } from "./domain.js";
 import { loadCapturedSource } from "./captures.js";
@@ -7,7 +5,7 @@ import { acceptSource, failed, lastGood, readSource, writeSource } from "./store
 import { dedupe } from "./dedupe.js";
 import { errorMessage } from "./parse.js";
 import { datesFrom } from "./time.js";
-import { renderDate } from "./site.js";
+import { writeSite } from "./site.js";
 import type { SourceInfo } from "./site.js";
 import type { Screening } from "./domain.js";
 
@@ -42,13 +40,6 @@ for (const sourceId of sourceIdSchema.options) {
   if (next.state.kind === "failed") { rejected = true; console.error(`${sourceId}: ${next.state.error.message}`); }
 }
 const combined = dedupe(screenings);
-for (const date of dates) {
-  const html = renderDate(date, combined, sources, dates);
-  if (gzipSync(html).length > 25000) throw new Error(`HTML exceeds compressed 25 KB budget: ${date}`);
-  await mkdir(`${output}/${date}`, { recursive: true });
-  await writeFile(`${output}/${date}/index.html`, html);
-  if (date === firstDate) await writeFile(`${output}/index.html`, html);
-}
-await writeFile(`${output}/screenings.json`, `${JSON.stringify(combined, null, 2)}\n`);
+await writeSite(output, dates, combined, sources);
 console.log(`Generated 14 date pages from ${combined.length} screenings across four saved sources. No network requests.`);
 if (rejected) process.exitCode = 1;

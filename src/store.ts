@@ -10,11 +10,12 @@ const observationSchema = z.strictObject({ firstSeenAt: instantSchema, lastSeenA
 const storedSchema = z.strictObject({
   version: z.literal(1), state: sourceStateSchema,
   observations: z.record(z.string(), observationSchema),
+  diagnostics: z.array(z.object({ kind: z.enum(["excluded", "invalid", "warning"]), record: z.string(), message: z.string() })).default([]),
 });
 export type StoredSource = z.infer<typeof storedSchema>;
 
 export function emptySource(): StoredSource {
-  return { version: 1, state: { kind: "not-checked" }, observations: {} };
+  return { version: 1, state: { kind: "not-checked" }, observations: {}, diagnostics: [] };
 }
 
 export function lastGood(state: SourceState) {
@@ -48,7 +49,8 @@ export function acceptSource(previous: StoredSource, sourceId: SourceId, result:
   const observations = Object.fromEntries(records.map(item => [item.id, {
     firstSeenAt: previous.observations[item.id]?.firstSeenAt ?? at, lastSeenAt: at,
   }]));
-  return { version: 1, state: { kind: "ready", snapshot: { screenings: records, checkedAt: at, changedAt } }, observations };
+  return { version: 1, state: { kind: "ready", snapshot: { screenings: records, checkedAt: at, changedAt } }, observations,
+    diagnostics: [...result.value.diagnostics] };
 }
 
 export async function readSource(directory: string, sourceId: SourceId): Promise<StoredSource> {
@@ -62,13 +64,15 @@ export async function readSource(directory: string, sourceId: SourceId): Promise
 }
 
 export async function writeSource(directory: string, sourceId: SourceId, value: StoredSource): Promise<void> {
-  // ponytail: one writer for the offline CLI; add locking only with concurrent ingestion.
-  const validated = storedSchema.parse(value);
+  await writeJson(directory, `${sourceId}.json`, storedSchema.parse(value));
+}
+
+export async function writeJson(directory: string, name: string, value: unknown): Promise<void> {
   await mkdir(directory, { recursive: true });
-  const temporary = join(directory, `.${sourceId}-${randomUUID()}.tmp`);
+  const temporary = join(directory, `.${name}-${randomUUID()}.tmp`);
   try {
-    await writeFile(temporary, `${JSON.stringify(validated, null, 2)}\n`, { flag: "wx" });
-    await rename(temporary, join(directory, `${sourceId}.json`));
+    await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, { flag: "wx" });
+    await rename(temporary, join(directory, name));
   } finally {
     await unlink(temporary).catch(error => { if (error.code !== "ENOENT") throw error; });
   }

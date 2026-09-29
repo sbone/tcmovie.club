@@ -6,12 +6,13 @@ import type { Diagnostic, ParsedSource } from "../parse.js";
 import { chicagoTime, clock24, datesFrom, englishDate } from "../time.js";
 
 // Film pages omit years. Use dated navigation plus the preceding week for lingering past shows.
-export function parseRiverview(raw: string, details: Readonly<Record<string, string>> = {}): Result<ParsedSource, string> {
+export function parseRiverview(raw: string, details: Readonly<Record<string, string>> = {}, expectedDate?: string): Result<ParsedSource, string> {
   try {
     const $ = load(raw);
     const header = $("h2").toArray().map(el => $(el).text()).find(text => text.startsWith("Now Playing -"));
     if (!header || !$(".blog-sidebar ul.playing").length) throw new Error("Missing dated Riverview schedule");
     const date = englishDate(header);
+    if (expectedDate && date !== expectedDate) throw new Error(`Requested ${expectedDate}, received Riverview listings for ${date}`);
     if ($('.blog-sidebar ul.playing').text().includes("there aren't any showtimes scheduled at the moment")
       && $('#posters a[href^="/show/show/"]').length === 0
       && $('.blog-sidebar ul.playing a[href^="/show/show/"]').length === 0) {
