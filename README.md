@@ -1,78 +1,78 @@
 # Twin Cities Movie Screenings
 
-A small TypeScript foundation for the [project brief](twin-cities-movie-screenings-codex-handoff.md).
+A small TypeScript app that turns saved Trylon, Heights, Riverview, and Parkway
+listings into chronological HTML date pages. Includes all films, explicit
+“Members only” labels, and “Event starts · film time unconfirmed” where needed.
 
 ```sh
 npm ci
 npm run check
+npm run generate
+python3 -m http.server 8000 --bind 127.0.0.1 --directory site
 ```
 
-The local `.tool-versions` selects the Node version already installed on this machine.
-`build` currently compiles the domain module; it does not generate a website.
-Tests are offline. There is no fetch command, scheduler, deployment, or running service yet.
+Open <http://127.0.0.1:8000>. The local `.tool-versions` selects Node 22.
+Generation and tests are entirely offline: no theater requests, scheduler,
+fetch command, or deployment. The default preview starts September 29, 2026,
+using captures saved that day. It produces 14 date pages and `screenings.json`.
+To preview another window (including a members-only screening):
 
-## Types
+```sh
+npm run generate -- 2027-02-24
+```
 
-[src/domain.ts](src/domain.ts) uses Elm-style modeling with ordinary TypeScript:
+Optional positional arguments are start date, capture directory, output directory,
+and state directory; defaults are `2026-09-29`, `test/fixtures`, `site`, and
+`.state/demo`. Generated output and state are ignored by Git.
 
-- Readonly records and lists; Zod decodes `unknown` into validated domain values.
-- A tagged `Result` makes validation failure explicit.
-- A screening is scheduled with known/unknown availability, or cancelled.
-- Access is explicitly unknown, public, or members-only. Screening facts do not
-  require ingestion bookkeeping timestamps.
-- A start is a confirmed screening time, optionally with doors time, or an event
-  time whose film start is unconfirmed. Render the latter with `startLabel`.
-- Source state is not checked, ready with a snapshot, or failed with optional
-  last-known-good data. `sourceScreenings` reads that data; durable storage and
-  ingestion transitions are still to be implemented.
-- Validated IDs, URLs, and timestamps have distinct branded types. Schemas are
-  the source of truth; inferred types avoid parallel handwritten definitions.
-- `null` represents absent metadata. We do not invent defaults for unknown times,
-  formats, or ticket availability, or wrap every nullable field in a custom Maybe.
-- Exhaustive switches use `never`, so adding a union variant requires updating
-  its consumers. TypeScript assertions can bypass checking; avoid `as Screening`.
+## Implementation
 
-Timestamps require an explicit offset and normalize to UTC. Adapters must resolve
-local showtimes using `America/Chicago`; a valid offset alone does not prove a
-source's local time was interpreted correctly. Domain tests cover offset handling,
-not yet local-time parsing or all DST edge cases.
+[Domain types](src/domain.ts) use readonly records, tagged unions, and branded
+IDs, URLs, and instants. Zod schemas decode unknown data and supply the inferred
+TypeScript types. A tagged `Result` makes parser failures explicit; `null` means
+unknown metadata without adding a custom Maybe abstraction.
 
-## Source research and next work
+Four pure [source parsers](src/sources/README.md) feed one HTML renderer. Calendar
+syntax uses `ical.js`, HTML uses Cheerio, and Chicago local times use Temporal's
+IANA timezone rules. Ambiguous or nonexistent local times are rejected. The pages
+use ordinary links and inline CSS, with no client JavaScript, images, or web fonts.
+Text is escaped and generation enforces a 25 KB compressed HTML budget per page.
 
-See [the source report](docs/source-research.md). Heights is a straightforward HTML
-adapter candidate. Trylon now also has a successful user-supplied calendar capture
-for offline adapter development, despite the earlier automated requests returning
-403. Its feed requests a minimum 24-hour refresh interval. Recurring ingestion
-remains disabled; the report records timing and event-classification caveats.
+[Storage](src/store.ts) keeps one validated JSON file per source, replacing it
+through an adjacent temporary file and atomic rename. Failed imports retain the
+last good schedule while other sources can update. Empty results, invalid records,
+older captures, and large drops in upcoming screenings are rejected. Generation
+still writes the fallback pages and exits with status 1 when an import fails.
+Corrupt stored files stop the build instead of silently erasing retained data.
 
-Include all films from participating venues and retain explicit special-programming
-signals. Exclude standalone concert listings and passes that are not screenings.
-Keep members-only screenings visible with an explicit “Members only” label.
-The domain represents this; the renderer will display the label.
+`checkedAt` records the accepted capture timestamp; `changedAt` advances only when
+screening content changes. First/last observation times live outside screening
+facts and cover records in the current snapshot. Replaying fixtures does not make
+them fresh. This is local, single-writer storage, without historical backups or
+concurrent ingestion. Cross-source duplicates require an exact normalized title,
+venue, and start time; the venue's own listing wins and membership labels survive.
 
-Next milestone: one offline command turns the saved Trylon calendar into a useful
-chronological HTML date page. Keep the implementation small:
+`npm run check` compiles strict TypeScript and runs domain, fixture, DST, rendering,
+storage, and full-generation tests, including a failed-source recovery scenario.
+Expected fixture examples were manually checked. `skipLibCheck` skips incompatible
+declarations shipped by `ical.js`; application code remains strictly checked.
 
-1. Preserve a captured fixture with provenance and manually checked expected data.
-2. Write one pure Trylon parser and focused regression tests. Use existing parsers
-   for calendar syntax and reliable timezone handling; do not build a calendar engine.
-3. Represent membership access explicitly, including unknown access. Keep ingestion
-   bookkeeping out of parser input/output; add it when storing ingestion results.
-4. Render the parsed screenings as ordinary HTML with escaped text, useful links,
-   membership/uncertain-time labels, and the capture's actual freshness timestamp.
-5. Add Heights, then Riverview and Parkway. Extract shared helpers only when actual
-   implementations need them. Do not introduce an adapter framework in advance.
+## Coverage and remaining work
 
-The existing six tests cover domain behavior, not source parsing, local-time
-conversion, durable retention, or HTML output. Add those checks with the corresponding
-working behavior; the original handoff's test catalog is not a scaffolding checklist.
+These captures demonstrate parsing, not a complete or current schedule. All preview
+pages say the data is stale and coverage may be incomplete. The saved Trylon feed
+has no September 29 events despite earlier indexed homepage listings. Riverview
+has one daily listing and one detail page; Heights supplies its captured homepage;
+Parkway supplies its movie listing and one detail page. Trylon's apparent placeholder
+end times are omitted. See [source research](docs/source-research.md) for evidence,
+access constraints, and capture provenance.
 
-Add durable last-known-good storage before enabling ingestion. Scheduled fetching,
-manual refresh, cooldowns, and backoff come after the offline path works. The fetcher
-identity is deliberately unset for now; it does not block parser/rendering work.
-No additional live requests are needed for this milestone.
+Before live collection, settle the fetcher identity and validate source coverage
+and permitted access. Then add a small budgeted fetch command with conditional
+requests, timeouts, cooldowns, and failure backoff. Trylon's feed requests at least
+24 hours between refreshes. No recurring collection is enabled while these remain
+unresolved. A scheduler and deployment can follow a verified manual collection.
 
-Downloaded research bodies are retained under `.research/2026-09-29/`, ignored by
-Git, with a request manifest. They can contain public form tokens and venue copy;
-sanitize the relevant captured responses before adding parser fixtures to Git.
-The tests currently use explicitly synthetic domain inputs, not real showtimes.
+The [original project brief](twin-cities-movie-screenings-codex-handoff.md) remains
+the broader roadmap. Raw research responses are retained locally under `.research/`;
+committed HTML fixtures remove executable scripts and form tokens.

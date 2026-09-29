@@ -4,3 +4,4 @@ dist/
 .research/
 /trylon-headers.txt
 /site/
+/.state/

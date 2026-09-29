@@ -95,23 +95,27 @@ export function decodeScreening(input: unknown): Result<Screening, readonly Deco
     };
 }
 
-export type SourceSnapshot = Readonly<{
-  screenings: readonly Screening[];
-  checkedAt: Instant; // Last accepted check, including a valid unchanged response.
-  changedAt: Instant; // Changes to screening content, excluding bookkeeping dates.
-}>;
+export const sourceSnapshotSchema = z.strictObject({
+  screenings: z.array(screeningSchema).readonly(),
+  checkedAt: instantSchema,
+  changedAt: instantSchema,
+}).readonly();
+export type SourceSnapshot = z.infer<typeof sourceSnapshotSchema>;
 
-export type IngestError = Readonly<{
-  kind: "access" | "network" | "parse" | "validation" | "anomaly";
-  at: Instant;
-  message: string;
-}>;
+const ingestErrorSchema = z.strictObject({
+  kind: z.enum(["access", "network", "parse", "validation", "anomaly"]),
+  at: instantSchema,
+  message: z.string(),
+}).readonly();
+export type IngestError = z.infer<typeof ingestErrorSchema>;
 
 // Staleness is derived from time and failures, not a competing mutable flag.
-export type SourceState =
-  | Readonly<{ kind: "not-checked" }>
-  | Readonly<{ kind: "ready"; snapshot: SourceSnapshot }>
-  | Readonly<{ kind: "failed"; lastGood: SourceSnapshot | null; error: IngestError }>;
+export const sourceStateSchema = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("not-checked") }).readonly(),
+  z.strictObject({ kind: z.literal("ready"), snapshot: sourceSnapshotSchema }).readonly(),
+  z.strictObject({ kind: z.literal("failed"), lastGood: sourceSnapshotSchema.nullable(), error: ingestErrorSchema }).readonly(),
+]);
+export type SourceState = z.infer<typeof sourceStateSchema>;
 
 export function sourceScreenings(state: SourceState): readonly Screening[] {
   switch (state.kind) {
