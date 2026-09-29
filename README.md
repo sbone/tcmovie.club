@@ -18,6 +18,8 @@ Tests are offline. There is no fetch command, scheduler, deployment, or running 
 - Readonly records and lists; Zod decodes `unknown` into validated domain values.
 - A tagged `Result` makes validation failure explicit.
 - A screening is scheduled with known/unknown availability, or cancelled.
+- Access is explicitly unknown, public, or members-only. Screening facts do not
+  require ingestion bookkeeping timestamps.
 - A start is a confirmed screening time, optionally with doors time, or an event
   time whose film start is unconfirmed. Render the latter with `startLabel`.
 - Source state is not checked, ready with a snapshot, or failed with optional
@@ -46,7 +48,7 @@ remains disabled; the report records timing and event-classification caveats.
 Include all films from participating venues and retain explicit special-programming
 signals. Exclude standalone concert listings and passes that are not screenings.
 Keep members-only screenings visible with an explicit “Members only” label.
-This decision still needs to be represented in the domain and renderer.
+The domain represents this; the renderer will display the label.
 
 Next milestone: one offline command turns the saved Trylon calendar into a useful
 chronological HTML date page. Keep the implementation small:
@@ -61,7 +63,7 @@ chronological HTML date page. Keep the implementation small:
 5. Add Heights, then Riverview and Parkway. Extract shared helpers only when actual
    implementations need them. Do not introduce an adapter framework in advance.
 
-The existing five tests cover domain behavior, not source parsing, local-time
+The existing six tests cover domain behavior, not source parsing, local-time
 conversion, durable retention, or HTML output. Add those checks with the corresponding
 working behavior; the original handoff's test catalog is not a scaffolding checklist.
 

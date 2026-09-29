@@ -15,10 +15,9 @@ const example = {
   series: null,
   tags: ["special", "special"],
   status: { kind: "scheduled", availability: "unknown" },
+  access: "unknown",
   sourceId: "trylon",
   sourceEventId: null,
-  firstSeenAt: "2026-09-29T10:00:00Z",
-  lastSeenAt: "2026-09-29T10:00:00Z",
 };
 
 test("decode validates, normalizes, and preserves distinct source and venue", () => {
@@ -44,7 +43,7 @@ test("decode rejects invalid external data instead of trusting a type assertion"
     { eventUrl: "javascript:alert(1)" },
     { ticketUrl: "not a URL" },
     { endsAt: "2026-09-29T18:00:00-05:00" },
-    { lastSeenAt: "2026-09-28T10:00:00Z" },
+    { access: "everyone-probably" },
     { status: { kind: "cancelled", availability: "available" } },
     { status: { kind: "scheduled" } },
   ]) {
@@ -53,6 +52,14 @@ test("decode rejects invalid external data instead of trusting a type assertion"
     assert.ok(result.error.length > 0);
   }
   assert.equal(decodeScreening(null).kind, "err");
+});
+
+test("membership restrictions are explicit and unknown access stays unknown", () => {
+  for (const access of ["unknown", "public", "members-only"]) {
+    const result = decodeScreening({ ...example, access });
+    assert.equal(result.kind, "ok");
+    assert.equal(result.value.access, access);
+  }
 });
 
 test("event times retain uncertainty; explicit film times can retain doors separately", () => {
@@ -76,15 +83,15 @@ test("explicit offsets distinguish the two occurrences of a DST fall-back time",
   assert.equal(instantSchema.parse("2026-11-01T01:30:00-06:00"), "2026-11-01T07:30:00.000Z");
 });
 
-test("failed source can still expose its last accepted schedule", () => {
+test("source state reader returns the supplied snapshot, including after failure", () => {
   const result = decodeScreening(example);
   assert.equal(result.kind, "ok");
   const snapshot = {
     screenings: [result.value],
-    checkedAt: result.value.lastSeenAt,
-    changedAt: result.value.firstSeenAt,
+    checkedAt: instantSchema.parse("2026-09-29T10:00:00Z"),
+    changedAt: instantSchema.parse("2026-09-29T10:00:00Z"),
   };
-  const error = { kind: "parse", at: result.value.lastSeenAt, message: "Source changed" };
+  const error = { kind: "parse", at: snapshot.checkedAt, message: "Source changed" };
   assert.equal(sourceScreenings({ kind: "ready", snapshot }), snapshot.screenings);
   assert.equal(sourceScreenings({ kind: "failed", lastGood: snapshot, error }), snapshot.screenings);
   assert.deepEqual(sourceScreenings({ kind: "failed", lastGood: null, error }), []);

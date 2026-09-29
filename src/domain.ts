@@ -69,17 +69,14 @@ export const screeningSchema = z.strictObject({
   series: text.nullable(),
   tags: z.array(text).transform(tags => [...new Set(tags)]).readonly(),
   status: screeningStatusSchema,
+  access: z.enum(["unknown", "public", "members-only"]),
   sourceId: sourceIdSchema,
   sourceEventId: text.nullable(),
-  firstSeenAt: instantSchema,
-  lastSeenAt: instantSchema,
 }).refine(value => value.endsAt === null || value.endsAt > value.start.at, {
   path: ["endsAt"], message: "End must be after start",
 }).refine(value => value.start.kind !== "screening"
   || value.start.doorsAt === null || value.start.doorsAt <= value.start.at, {
   path: ["start", "doorsAt"], message: "Doors must not be after the screening start",
-}).refine(value => value.lastSeenAt >= value.firstSeenAt, {
-  path: ["lastSeenAt"], message: "Last seen must not precede first seen",
 }).readonly();
 export type Screening = z.infer<typeof screeningSchema>;
 

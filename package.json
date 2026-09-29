@@ -7,7 +7,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "test": "npm run build && node --test test/*.test.mjs",
-    "check": "npm run typecheck && npm test"
+    "check": "npm test"
   },
   "dependencies": {
     "zod": "4.6.5"
