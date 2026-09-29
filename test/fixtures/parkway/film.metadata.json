@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://theparkwaytheater.com/all-events/poltergeist-26",
+  "contentType": "text/html;charset=utf-8",
+  "originalSha256": "48804bf6116590af3b1c10b0dba0bf66c96ae29394222d6755edc51ee704c60c",
+  "notes": "Actual captured HTML. Removed non-JSON-LD scripts, hidden form inputs and CSRF meta tags; redacted signed image URL query strings. Listing markup unchanged. Exact acquisition time was not recorded. responseAt is the HTTP Date and may predate capture due to CDN caching; use it conservatively for offline preview freshness.",
+  "capturedOn": "2026-09-29",
+  "responseAt": "2026-09-29T00:13:42+00:00"
+}

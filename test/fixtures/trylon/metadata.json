@@ -1,6 +1,7 @@
 {
   "sourceUrl": "https://www.trylon.org/feed/my-calendar-google/",
-  "capturedAt": "2026-09-29T11:16:22Z",
   "contentType": "text/calendar; charset=UTF-8",
-  "notes": "Actual user-supplied response, unmodified. 194 events, including one ticket-sale event. Embedded timezone transitions are malformed and end times are apparent placeholders. expected.json contains manually reviewed representative records from the full capture."
+  "notes": "Actual user-supplied response, unmodified. 194 events, including one ticket-sale event. Embedded timezone transitions are malformed and end times are apparent placeholders. expected.json contains manually reviewed representative records from the full capture.",
+  "responseAt": "2026-09-29T11:16:22Z",
+  "capturedOn": "2026-09-29"
 }

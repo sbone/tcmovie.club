@@ -1,0 +1,18 @@
+[
+  {
+    "id": "heights:570", "title": "Winter Hymns", "venueId": "heights",
+    "start": { "kind": "screening", "at": "2026-09-29T20:30:00.000Z", "doorsAt": null },
+    "endsAt": null, "eventUrl": "https://www.heightstheater.com/films-and-events/winter-hymns", "ticketUrl": null,
+    "format": "DCP", "series": null, "tags": [],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "unknown",
+    "sourceId": "heights", "sourceEventId": "570"
+  },
+  {
+    "id": "heights:486", "title": "Sunset Boulevard", "venueId": "heights",
+    "start": { "kind": "screening", "at": "2026-10-02T00:00:00.000Z", "doorsAt": null },
+    "endsAt": null, "eventUrl": "https://www.heightstheater.com/films-and-events/sunset-boulevard", "ticketUrl": null,
+    "format": "35mm", "series": "Heights Centennial", "tags": ["Heights Centennial"],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "unknown",
+    "sourceId": "heights", "sourceEventId": "486"
+  }
+]

@@ -71,6 +71,12 @@ not guaranteed feeds, complete coverage, or permission from the operators.
   screening. Preserve club-access restrictions rather than presenting those
   events as ordinary public screenings. Unique UIDs in one file are promising
   identity keys, but stability across updates is not yet verified.
+- During implementation, the full saved feed was found to contain **no September
+  29 screenings and no Je Tu Il Elle entries**, despite those appearing in the
+  earlier search-indexed homepage excerpt. This may reflect incomplete or divergent
+  source data; the indexed page is not authoritative proof of the current schedule.
+  Feed completeness requires reconciliation before treating it as a complete source.
+  The offline preview explicitly warns about unverified coverage.
 - Search-engine-indexed excerpts of the [homepage](https://www.trylon.org/) show
   dates, multiple showtimes, format/sold-out text, and some events at **Heights**.
   This is indirect evidence, not a captured parser fixture or a live feed verification.

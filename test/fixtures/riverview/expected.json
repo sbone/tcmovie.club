@@ -1,0 +1,10 @@
+[
+  {
+    "id": "riverview:/show/show/3364:2026-10-01T18:15:00.000Z", "title": "The Odyssey", "venueId": "riverview",
+    "start": { "kind": "screening", "at": "2026-10-01T18:15:00.000Z", "doorsAt": null },
+    "endsAt": null, "eventUrl": "https://www.riverviewtheater.com/show/show/3364", "ticketUrl": null,
+    "format": null, "series": null, "tags": [],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "unknown",
+    "sourceId": "riverview", "sourceEventId": null
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://www.heightstheater.com/",
+  "contentType": "text/html; charset=utf-8",
+  "originalSha256": "26a1ef9a4f8c2c0bd634f04abf8ed69645188accef725d82ea0c3a66970eaf67",
+  "notes": "Actual captured HTML. Removed non-JSON-LD scripts, hidden form inputs and CSRF meta tags; redacted signed image URL query strings. Listing markup unchanged. Exact acquisition time was not recorded. responseAt is the HTTP Date and may predate capture due to CDN caching; use it conservatively for offline preview freshness.",
+  "capturedOn": "2026-09-29",
+  "responseAt": "2026-09-29T10:56:10+00:00"
+}

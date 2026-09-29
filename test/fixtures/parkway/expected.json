@@ -1,0 +1,11 @@
+[
+  {
+    "id": "parkway:/all-events/poltergeist-26:2026-09-29",
+    "title": "Poltergeist (1982) 35mm presentation w/ pre-movie DJ set by Shane Kramer", "venueId": "parkway",
+    "start": { "kind": "screening", "at": "2026-09-30T01:00:00.000Z", "doorsAt": "2026-09-30T00:00:00.000Z" },
+    "endsAt": null, "eventUrl": "https://theparkwaytheater.com/all-events/poltergeist-26", "ticketUrl": null,
+    "format": "35mm", "series": null, "tags": [],
+    "status": { "kind": "scheduled", "availability": "unknown" }, "access": "unknown",
+    "sourceId": "parkway", "sourceEventId": "/all-events/poltergeist-26"
+  }
+]

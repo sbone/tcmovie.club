@@ -1,0 +1,8 @@
+{
+  "sourceUrl": "https://www.riverviewtheater.com/show/show/3364",
+  "contentType": "text/html; charset=utf-8",
+  "originalSha256": "8c66327f0f49744087bdf8d4fdec424153cc665b19d63df92599b6e7c92f3aaf",
+  "notes": "Actual captured HTML. Removed non-JSON-LD scripts, hidden form inputs and CSRF meta tags; redacted signed image URL query strings. Listing markup unchanged. Exact acquisition time was not recorded. responseAt is the HTTP Date and may predate capture due to CDN caching; use it conservatively for offline preview freshness.",
+  "capturedOn": "2026-09-29",
+  "responseAt": "2026-09-29T10:56:59+00:00"
+}
