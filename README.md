@@ -24,10 +24,15 @@ screenings stay visible and labeled. If a source gives an event start without a
 confirmed film time, the listing says so. Source timestamps help you judge how
 recent the information is; the theater's own page is the final place to check.
 
+Use the theater buttons to show any combination of venues. Your selection stays
+in the URL and follows you between dates, so you can share a filtered schedule.
+
 ## Fast pages, a light touch
 
-The site serves small, static HTML pages with no client-side JavaScript, images,
-or web fonts. Opening a page never triggers a request to a theater's website.
+The site serves small, static HTML pages. A small inline script filters the
+listings already on the page; the full schedule is readable without JavaScript.
+The schedule loads no images or web fonts. Opening a page or changing a filter
+never triggers a request to a theater's website.
 
 Collection happens separately, with small request budgets, pauses after failures,
 and checks of each source's access rules. The intended update schedule is 7 AM

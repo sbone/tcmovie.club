@@ -21,7 +21,13 @@ test("offline build combines five sources and retains a venue when its next impo
     const $ = load(html);
     // The reviewed film page supplements the feed's missing Sep 29 Trylon screenings.
     assert.equal($(".screenings li").length, 22);
-    assert.equal($("script, img, link").length, 0);
+    assert.equal($("script[src], img, link:not([rel=canonical])").length, 0);
+    assert.equal($("script").length, 1);
+    assert.equal($("meta[property='og:url']").attr("content"), "https://tcmovie.club/");
+    const shareImage = await readFile(join(output, "social-card.png"));
+    assert.equal(shareImage.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+    assert.equal(shareImage.readUInt32BE(16), 1200);
+    assert.equal(shareImage.readUInt32BE(20), 630);
     assert.ok(gzipSync(html).length < 25000);
     assert.equal((await readdir(output)).filter(name => /^2026-/.test(name)).length, 14);
     assert.ok($("main").text().includes("Poltergeist"));
@@ -32,6 +38,7 @@ test("offline build combines five sources and retains a venue when its next impo
     assert.ok($("main").text().includes("Je Tu Il Elle"));
     assert.ok($("main").text().includes("The Main Cinema"));
     const tomorrow = load(await readFile(join(output, "2026-09-30/index.html"), "utf8"));
+    assert.equal(tomorrow("meta[property='og:url']").attr("content"), "https://tcmovie.club/2026-09-30/");
     const akira = tomorrow(".screenings li").filter((_, el) => tomorrow(el).text().includes("AKIRA (1988)"));
     assert.equal(akira.length, 1);
     assert.equal(akira.find("time").text(), "4:30 PM");

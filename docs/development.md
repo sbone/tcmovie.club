@@ -93,7 +93,8 @@ Five pure [source parsers](../src/sources/README.md) feed one HTML renderer from
 the collector or offline captures. Calendar
 syntax uses `ical.js`, HTML uses Cheerio, and Chicago local times use Temporal's
 IANA timezone rules. Ambiguous or nonexistent local times are rejected. The pages
-use ordinary links and inline CSS, with no client JavaScript, images, or web fonts.
+use ordinary links and inline CSS, with one small inline script for theater
+filters and no visible images or web fonts.
 Text is escaped and generation enforces a 25 KB compressed HTML budget per page.
 
 [Storage](../src/store.ts) keeps one validated JSON file per source, replacing it
@@ -118,6 +119,32 @@ and a clock, covering discovery, budgets, conditional requests, backoff, access 
 freshness, source isolation, and the absence of manual Trylon corrections.
 Expected fixture examples were manually checked. `skipLibCheck` skips incompatible
 declarations shipped by `ical.js`; application code remains strictly checked.
+
+## Theater filters
+
+All screenings are rendered into each date page. Native toggle buttons hide
+unselected venues locally, using `?theaters=trylon,heights` for a selection.
+Omitting the parameter selects all venues; `?theaters=` selects none. Unknown
+IDs are ignored. Date links retain the selection, and browser Back/Forward
+restores it. Without JavaScript, the full schedule remains visible.
+
+The self-contained function in [filters.ts](../src/filters.ts) is compiled and
+embedded by the renderer, with no extra browser request or runtime dependency.
+
+## Sharing previews
+
+Generated pages include [Open Graph](https://ogp.me/) and Twitter card metadata
+directly in their HTML. The homepage shares the site introduction; dated pages
+use their own title, description, and canonical URL. All URLs use `https://tcmovie.club`.
+
+The generator copies the committed 1200 × 630 [PNG](../assets/social-card.png)
+to `site/social-card.png`. Its editable [SVG source](../assets/social-card.svg)
+is kept alongside it; export a new PNG at the same dimensions when changing the
+artwork. The image is referenced by sharing metadata and is not loaded as part
+of the visible schedule. Both the offline generator and collector publish it.
+Deploy the full `site/` directory to publish the image with the updated HTML.
+Local tests check metadata and the image file; previews inside social apps need
+to be checked after deployment.
 
 ## Coverage and remaining work
 

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#faf9f4"/>
+  <path d="M0 0H1200V14H0Z" fill="#215a44"/>
+  <text x="72" y="99" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="3" fill="#215a44">TWIN CITIES MOVIE SCREENINGS</text>
+  <g font-family="Georgia, serif" font-size="100" font-weight="700" fill="#20231f">
+    <text x="66" y="259">Pick a night.</text>
+    <text x="66" y="374">Find a film.</text>
+  </g>
+  <text x="72" y="436" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#4c554e">Unique theaters. Unexpected discoveries.</text>
+  <path d="M72 485H1128" stroke="#d5d8ce" stroke-width="2"/>
+  <text x="72" y="556" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="700" letter-spacing="-1" fill="#215a44">tcmovie.club</text>
+  <text x="1128" y="553" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2" fill="#215a44">FOR THE LOVE OF LOCAL CINEMA</text>
+  <g>
+    <path d="M854 425V214H889V155H1001V214H1036V425Z" fill="#e4e8dc"/>
+    <path d="M870 425V220H905V171H985V220H1020V425Z" fill="#215a44"/>
+    <path d="M929 171V222M945 155V222M961 171V222" stroke="#c89b57" stroke-width="4"/>
+    <path d="M940 128H950M945 123V133" stroke="#215a44" stroke-width="3"/>
+    <path d="M806 239H1084V343H806Z" fill="#215a44"/>
+    <path d="M817 250H1073V332H817Z" fill="#c89b57"/>
+    <path d="M828 262H1062V320H828Z" fill="#faf9f4"/>
+    <g fill="#faf9f4">
+      <circle cx="839" cy="255" r="3"/><circle cx="862" cy="255" r="3"/><circle cx="885" cy="255" r="3"/><circle cx="908" cy="255" r="3"/><circle cx="931" cy="255" r="3"/><circle cx="954" cy="255" r="3"/><circle cx="977" cy="255" r="3"/><circle cx="1000" cy="255" r="3"/><circle cx="1023" cy="255" r="3"/><circle cx="1046" cy="255" r="3"/>
+      <circle cx="839" cy="327" r="3"/><circle cx="862" cy="327" r="3"/><circle cx="885" cy="327" r="3"/><circle cx="908" cy="327" r="3"/><circle cx="931" cy="327" r="3"/><circle cx="954" cy="327" r="3"/><circle cx="977" cy="327" r="3"/><circle cx="1000" cy="327" r="3"/><circle cx="1023" cy="327" r="3"/><circle cx="1046" cy="327" r="3"/>
+    </g>
+    <text x="945" y="301" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="26" letter-spacing="3" fill="#215a44">TONIGHT</text>
+    <path d="M906 425V364H984V425" fill="#faf9f4"/>
+    <path d="M945 364V425" stroke="#215a44" stroke-width="4"/>
+    <path d="M934 394V404M956 394V404" stroke="#c89b57" stroke-width="4"/>
+    <path d="M842 428H1048" stroke="#215a44" stroke-width="6"/>
+    <path d="M1087 184H1107M1097 174V194M796 367H810M803 360V374" stroke="#c89b57" stroke-width="3"/>
+  </g>
+</svg>
