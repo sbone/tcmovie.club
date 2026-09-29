@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { test } from "node:test";
 import { collect } from "../dist/collect.js";
 import { createHttp, readHttp, userAgent, dayMs } from "../dist/http.js";
-import { readSource } from "../dist/store.js";
+import { acceptSource, emptySource, readSource } from "../dist/store.js";
+import { loadCapturedSource } from "../dist/captures.js";
 import { combineParsed } from "../dist/parse.js";
 import { parseRiverview, parseRiverviewSpecials } from "../dist/sources/riverview.js";
 
@@ -106,6 +107,34 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     fake.setTime(morning + dayMs + 12 * 3_600_000);
     await collect(options, fake.clock);
     assert.equal(forbidden, 0, "Retry-After survives process runs");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("manual Trylon fallback preserves provenance without fetching or seeding live state", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tc-saved-trylon-"));
+  try {
+    const capture = await loadCapturedSource("trylon", "test/fixtures");
+    const savedTrylon = acceptSource(emptySource(), "trylon", capture.result, capture.responseAt);
+    const options = { contact: "https://tcmovie.club", storage: join(directory, "state"), output: join(directory, "site"), savedTrylon };
+    const fake = fakeClock();
+    const first = await collect(options, fake.clock);
+    const info = first.sources.find(source => source.sourceId === "trylon");
+    assert.equal(info.checkedAt, capture.responseAt);
+    assert.equal(info.stale, true);
+    assert.match(info.note, /original capture date/);
+    assert.equal(fake.calls.some(call => call.url.includes("trylon")), false);
+    assert.equal((await readSource(options.storage, "trylon")).state.kind, "not-checked");
+    const shows = JSON.parse(await readFile(join(options.output, "screenings.json")));
+    assert.ok(shows.some(show => show.title === "Je Tu Il Elle"));
+    const calls = fake.calls.length;
+    await collect(options, fake.clock);
+    assert.equal(fake.calls.length, calls, "rebuilding must preserve per-window limits");
+    await collect({ ...options, enableTrylon: true }, fake.clock);
+    const live = await readSource(options.storage, "trylon");
+    assert.equal(live.state.snapshot.screenings.length, 193, "live collection must not include offline corrections");
+    await collect(options, fake.clock);
+    const current = JSON.parse(await readFile(join(options.output, "screenings.json")));
+    assert.equal(current.some(show => show.title === "Je Tu Il Elle"), false, "saved fallback must not override a live snapshot");
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 

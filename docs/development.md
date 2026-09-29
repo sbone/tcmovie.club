@@ -18,6 +18,34 @@ window does not fetch new data.
 
 ## Collector
 
+### Manual refresh, preview, and deployment
+
+Run `npm run refresh` from an interactive terminal with Node.js, Python 3, and
+Wrangler access to the `tcmovieclub` Pages project (`npx wrangler login` for initial
+authentication). The command runs the tests, refreshes eligible sources, and builds
+a separate preview under `.state/previews/`. Its default collector identity is
+`https://tcmovie.club`; `TC_CONTACT` can override it.
+
+For now this workflow keeps Trylon live collection disabled, even if
+`TC_ENABLE_TRYLON` is set. When no live Trylon state exists, it includes the saved
+Trylon capture and reviewed corrections, retaining their original timestamp and
+explicit stale/provenance labels. It never copies those inputs into live state.
+The other theaters use `.state/live`, including its persistent request budgets and
+backoff. Running the command again within the same collection window reuses data.
+
+After printing each theater's count and freshness, it starts a localhost-only
+server on an available port and opens the preview on macOS. Check the dates,
+filters, and source notes, then answer `y` or `yes` to deploy those exact files to
+`tcmovieclub`'s production branch, `main`. Enter or any other answer declines.
+Collection errors remain visible; a source with no saved schedule blocks
+deployment. A fatal build/state error stops the workflow. The server stops on
+completion or Ctrl-C; collected state and preview files remain for inspection.
+
+This does not schedule updates or run the offline generator after collection.
+`npm run generate` still builds the separate historical fixture preview in `site/`.
+
+### Collection without the interactive preview
+
 ```sh
 TC_CONTACT='https://your-public-project.example' npm run collect
 ```
@@ -133,18 +161,23 @@ embedded by the renderer, with no extra browser request or runtime dependency.
 
 ## Sharing previews
 
-Generated pages include [Open Graph](https://ogp.me/) and Twitter card metadata
-directly in their HTML. The homepage shares the site introduction; dated pages
-use their own title, description, and canonical URL. All URLs use `https://tcmovie.club`.
+Generated pages include Open Graph and Twitter card metadata directly in HTML.
+Each date gets a 1200 × 630 PNG with its date, count of non-cancelled screenings,
+and the theaters represented that day. The homepage uses the first date in the
+published schedule. Descriptions use “See films on” and Central Time wording.
 
-The generator copies the committed 1200 × 630 [PNG](../assets/social-card.png)
-to `site/social-card.png`. Its editable [SVG source](../assets/social-card.svg)
-is kept alongside it; export a new PNG at the same dimensions when changing the
-artwork. The image is referenced by sharing metadata and is not loaded as part
-of the visible schedule. Both the offline generator and collector publish it.
-Deploy the full `site/` directory to publish the image with the updated HTML.
-Local tests check metadata and the image file; previews inside social apps need
-to be checked after deployment.
+The [SVG template](../assets/social-card.svg) is rendered at build time with
+`@resvg/resvg-js`, using installed system fonts (Helvetica/Arial and Georgia where
+available; provide serif/sans-serif fonts on a minimal Linux host). The image URL
+includes the date and a content hash so changed cards get new URLs. Previously
+shared posts may still retain the platform's cached preview. No card is loaded by
+the visible schedule, and no theater requests are made to generate cards.
+The build also writes `social-card.png` as a compatibility alias for older shares.
+
+Both the offline generator and manual refresh build cards from their own schedule
+inputs; this never advances source freshness timestamps. Deploy the complete
+output folder with its `social/` images. Local tests cover metadata, dates, counts,
+and PNG dimensions. Check social-app previews after deployment.
 
 ## Coverage and remaining work
 

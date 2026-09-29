@@ -52,6 +52,24 @@ test("Parkway retains uncertain event times without detail pages and excludes pa
   assert.equal(value.screenings.some(item => item.title.includes("All Movie Pass")), false);
 });
 
+test("Heights tolerates ticketless past homepage rows but rejects missing IDs on upcoming rows", () => {
+  const card = '<div class="featured"><a class="featured-img-link" href="/films-and-events/winter-hymns"></a><div class="featured-title"><h2>Winter Hymns</h2></div><div class="showtime past"><a href="#"><time datetime="2026-09-29 15:30">3:30pm</time></a></div></div>';
+  const past = parseHeights(card);
+  assert.equal(past.kind, "ok");
+  assert.equal(past.value.diagnostics[0].kind, "excluded");
+  assert.equal(parseHeights(card.replace('showtime past', 'showtime')).value.diagnostics[0].kind, "invalid");
+});
+
+test("Riverview keeps line-separated and comma-separated times distinct", () => {
+  const page = '<h2>Now Playing - Friday, October 2, 2026</h2><div class="blog-sidebar"><ul class="playing"><li><a href="/show/show/3402">Coyote vs. Acme</a><br>11:45AM<br>7:10PM</li></ul></div>';
+  const result = parseRiverview(page);
+  assert.equal(result.kind, "ok");
+  assert.deepEqual(result.value.diagnostics, []);
+  assert.deepEqual(result.value.screenings.map(show => show.start.at), ["2026-10-02T16:45:00.000Z", "2026-10-03T00:10:00.000Z"]);
+  assert.deepEqual(parseRiverview(page.replace('11:45AM<br>7:10PM', '11:45AM, 7:10PM')).value.screenings, result.value.screenings);
+  assert.equal(parseRiverview(page.replace('11:45AM<br>7:10PM', 'TBA')).value.diagnostics[0].kind, "invalid");
+});
+
 test("Riverview resolves year rollover from dated navigation, and rejects unmatched detail dates", () => {
   // Synthetic regression for the same captured markup, not a live schedule.
   const page = '<h2>Now Playing - Thursday, December 31, 2026</h2><div class="blog-sidebar"><ul class="playing"><li><a href="/show/show/1">Test</a><br>7:00PM</li></ul></div><a href="/base/index/2027-01-01">Friday</a>';

@@ -1,10 +1,12 @@
 import { startLabel, timeZone } from "./domain.js";
 import type { Screening, SourceId } from "./domain.js";
 import { chicagoDate } from "./time.js";
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
+import { Resvg } from "@resvg/resvg-js";
 import { gzipSync } from "node:zlib";
 import type { Diagnostic } from "./parse.js";
 import { initTheaterFilters } from "./filters.js";
+import { socialCard } from "./social.js";
 
 export const venueNames = {
   trylon: "Trylon", heights: "Heights", parkway: "Parkway", riverview: "Riverview", main: "The Main Cinema",
@@ -35,8 +37,12 @@ export async function writeSite(output: string, dates: readonly string[], screen
     await writeFile(path, html);
   };
   await mkdir(output, { recursive: true });
-  await copyFile(new URL("../assets/social-card.png", import.meta.url), `${output}/social-card.png`);
+  await mkdir(`${output}/social`, { recursive: true });
   for (const date of dates) {
+    const card = socialCard(date, screenings.filter(item => chicagoDate(item.start.at) === date));
+    const png = new Resvg(card.svg).render().asPng();
+    await writeFile(`${output}${card.imagePath}`, png);
+    if (date === dates[0]) await writeFile(`${output}/social-card.png`, png);
     const html = renderDate(date, screenings, sources, dates);
     await mkdir(`${output}/${date}`, { recursive: true });
     await writePage(`${output}/${date}/index.html`, html);
@@ -48,15 +54,14 @@ export async function writeSite(output: string, dates: readonly string[], screen
 
 export function renderDate(date: string, screenings: readonly Screening[], sources: readonly SourceInfo[], dates: readonly string[] = [date], home = false): string {
   const label = shareDate.format(new Date(`${date}T12:00:00Z`));
-  const title = home ? "Twin Cities Movie Screenings · tcmovie.club" : `Movies for ${label} · tcmovie.club`;
-  const description = home
-    ? "Pick a night. Find a film at the Twin Cities' unique theaters. An independent guide built by a local film enthusiast, for the love of going to the movies."
-    : `Explore movie screenings for ${label} at the Twin Cities' unique theaters. Check each theater for tickets and the latest details.`;
-  const url = home ? "https://tcmovie.club/" : `https://tcmovie.club/${date}/`;
-  const image = "https://tcmovie.club/social-card.png";
-  const imageAlt = "Twin Cities Movie Screenings: Pick a night. Find a film. A green cinema marquee beside tcmovie.club.";
   const day = screenings.filter(item => chicagoDate(item.start.at) === date)
     .sort((a, b) => a.start.at.localeCompare(b.start.at) || a.title.localeCompare(b.title));
+  const card = socialCard(date, day);
+  const title = `See films on ${label} · Twin Cities Movie Club`;
+  const description = card.description;
+  const url = home ? "https://tcmovie.club/" : `https://tcmovie.club/${date}/`;
+  const image = `https://tcmovie.club${card.imagePath}`;
+  const imageAlt = card.alt;
   const links = dates.map(value => `<a href="/${escape(value)}/"${value === date ? ' aria-current="date"' : ""}>${escape(dayLabel.format(new Date(`${value}T12:00:00Z`)))}</a>`).join(" ");
   const rows = day.map(item => {
     const labels = [item.format, item.series,
@@ -118,8 +123,8 @@ ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
 <div class="schedule-notes"><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p>
 ${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}</div>
 <section aria-labelledby="about-tcmc"><h2 id="about-tcmc">About TCMC</h2>
-<p>Built by a film enthusiast who wanted one place to see what's playing on a random night. The Twin Cities have so many unique theaters. This is an invitation to explore them.</p>
-<p>Twin Cities Movie Screenings brings showtimes from these theaters into one calendar:</p>
+<p>Built by a film enthusiast who wanted one place to see what's playing on a random night.</p>
+<p>Twin Cities Movie Screenings brings showtimes from these fine theaters into one place:</p>
 <ul><li><a href="https://www.trylon.org/">Trylon Cinema</a></li>
 <li><a href="https://www.heightstheater.com/">Heights Theater</a></li>
 <li><a href="https://theparkwaytheater.com/">The Parkway Theater</a></li>

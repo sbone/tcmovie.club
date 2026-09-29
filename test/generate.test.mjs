@@ -24,7 +24,8 @@ test("offline build combines five sources and retains a venue when its next impo
     assert.equal($("script[src], img, link:not([rel=canonical])").length, 0);
     assert.equal($("script").length, 1);
     assert.equal($("meta[property='og:url']").attr("content"), "https://tcmovie.club/");
-    const shareImage = await readFile(join(output, "social-card.png"));
+    const imagePath = new URL($("meta[property='og:image']").attr("content")).pathname;
+    const shareImage = await readFile(join(output, imagePath));
     assert.equal(shareImage.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
     assert.equal(shareImage.readUInt32BE(16), 1200);
     assert.equal(shareImage.readUInt32BE(20), 630);

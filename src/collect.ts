@@ -9,11 +9,12 @@ import type { Runtime } from "./http.js";
 import { errorMessage } from "./parse.js";
 import { collectSource } from "./sources/collect.js";
 import { acceptSource, failed, lastGood, readSource, writeSource } from "./store.js";
+import type { StoredSource } from "./store.js";
 import { writeSite } from "./site.js";
 import type { SourceInfo } from "./site.js";
 import { datesFrom } from "./time.js";
 
-export async function collect(options: { contact: string; storage: string; output: string; enableTrylon?: boolean }, clock: Runtime = runtime) {
+export async function collect(options: { contact: string; storage: string; output: string; enableTrylon?: boolean; savedTrylon?: StoredSource }, clock: Runtime = runtime) {
   const agent = userAgent(options.contact);
   const started = clock.now();
   const local = Temporal.Instant.fromEpochMilliseconds(started).toZonedDateTimeISO(timeZone);
@@ -28,9 +29,11 @@ export async function collect(options: { contact: string; storage: string; outpu
       const previous = await readSource(options.storage, sourceId);
       const state = await readHttp(httpDirectory, sourceId);
       const save = () => saveHttp(httpDirectory, sourceId, state);
-      let next = previous;
+      // A manual refresh may supply a labeled offline fallback without seeding live state.
+      let next = sourceId === "trylon" && !options.enableTrylon && previous.state.kind === "not-checked"
+        ? options.savedTrylon ?? previous : previous;
       let note = "";
-      if (sourceId === "trylon" && !options.enableTrylon) note = "Live collection is disabled pending repeatable source access.";
+      if (sourceId === "trylon" && !options.enableTrylon) note = "Live collection is disabled pending repeatable source access. Saved listings retain their original capture date.";
       else if (state.paused) note = "Updates paused while source access is reviewed.";
       else if (started < state.nextAttemptAt) note = "Waiting before the next update attempt.";
       else if (state.slot === slot) note = "Showing the latest saved schedule.";

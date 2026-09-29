@@ -32,6 +32,10 @@ export function parseHeights(raw: string): Result<ParsedSource, string> {
         const at = chicagoTime(local.replace(" ", "T"));
         const ticketPath = show.find('a[href^="/order/add-tickets/"]').first().attr("href");
         const sourceEventId = ticketPath?.match(/^\/order\/add-tickets\/(\d+)(?:\/|$)/)?.[1];
+        if (!sourceEventId && show.hasClass("past")) {
+          diagnostics.push({ kind: "excluded", record, message: "Past homepage showtime has no ticket ID; use the dated calendar listing" });
+          return;
+        }
         if (!sourceEventId) throw new Error("Missing stable showtime ID");
         record = sourceEventId;
         const format = show.find('.format-and-tix-link a[href="#"]').text().trim() || null;

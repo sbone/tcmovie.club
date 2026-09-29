@@ -53,10 +53,10 @@ test("homepage and dated pages have distinct share URLs and static large-image m
     assert.equal(meta("og:description"), meta("description"));
     assert.equal(meta("twitter:description"), meta("description"));
     assert.equal(meta("twitter:card"), "summary_large_image");
-    assert.equal(meta("og:image"), "https://tcmovie.club/social-card.png");
+    assert.match(meta("og:image"), /^https:\/\/tcmovie\.club\/social\/2026-09-29-[a-f0-9]{12}\.png$/);
     assert.equal(meta("twitter:image"), meta("og:image"));
     assert.ok(meta("og:image:alt"));
-    if (home) assert.match(meta("description"), /film enthusiast/);
-    else assert.match(meta("og:title"), /Tuesday, September 29, 2026/);
+    assert.match(meta("description"), /No screenings listed. See films on Tuesday, September 29, 2026/);
+    assert.match(meta("og:title"), /Tuesday, September 29, 2026/);
   }
 });

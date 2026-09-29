@@ -40,7 +40,9 @@ export function parseRiverview(raw: string, details: Readonly<Record<string, str
       const title = row.find("a").first().text().trim();
       try {
         if (!path || !title) throw new Error("Missing film link/title");
-        const times = row.clone().find("a").remove().end().text().trim().split(/\s*,\s*/);
+        const times = row.clone().find("a").remove().end().find("br").replaceWith("\n").end()
+          .text().trim().split(/\s*[,\n]\s*/).filter(Boolean);
+        if (!times.length) throw new Error("Missing clock time");
         for (const time of times) add(path, title, date, time);
         const detail = details[path];
         if (!detail) return;

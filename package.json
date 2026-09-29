@@ -9,10 +9,12 @@
     "test": "npm run build && node --test test/*.test.mjs",
     "check": "npm test",
     "generate": "npm run build && node dist/generate.js",
-    "collect": "npm run build && node dist/collect.js"
+    "collect": "npm run build && node dist/collect.js",
+    "refresh": "npm run check && node dist/refresh.js"
   },
   "dependencies": {
     "@js-temporal/polyfill": "0.5.1",
+    "@resvg/resvg-js": "^2.6.2",
     "cheerio": "1.2.0",
     "ical.js": "2.2.1",
     "robots-parser": "3.0.1",

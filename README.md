@@ -1,17 +1,12 @@
 # tcmovie.club
 
-**Twin Cities Movie Screenings** — a small, fast way to find a movie at a local theater.
+**Twin Cities Movie Club** — quickly see what movies are playing at the most exquisite Twin Cities theaters.
 
 [Visit tcmovie.club](https://tcmovie.club)
 
-The idea is simple: bring local film schedules together so you can spend less time
-checking websites and more time at the movies. Regular releases, repertory films,
-and special programs belong here. Listings link back to the theaters for tickets
-and the latest details.
-
 ## The theaters
 
-The project currently has parsers and saved examples for:
+The project follows:
 
 - [Trylon Cinema](https://www.trylon.org/)
 - [Heights Theater](https://www.heightstheater.com/)
@@ -102,6 +97,10 @@ coverage details; the [original project brief](twin-cities-movie-screenings-code
 contains the broader ideas behind the project.
 
 ## Collector
+
+For a hands-on update, `npm run refresh` checks the app, refreshes eligible sources,
+opens a local preview, and asks before deploying to Cloudflare. Trylon uses its
+clearly labeled saved data for now. See the [manual refresh guide](docs/development.md#manual-refresh-preview-and-deployment).
 
 Live collection is a separate command from the offline preview. The
 [collector setup guide](docs/development.md#collector) covers the project identity,
