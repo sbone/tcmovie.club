@@ -189,6 +189,15 @@ restores it. Without JavaScript, the full schedule remains visible.
 The self-contained function in [filters.ts](../src/filters.ts) is compiled and
 embedded by the renderer, with no extra browser request or runtime dependency.
 
+## System theme
+
+The page follows the system's light/dark preference using CSS only. Dark mode uses
+a warm near-black gradient, cream text, and separate theater colors. Contrast tests
+check light text pairs at 4.5:1 or higher and dark pairs at 7:1 or higher, including
+badges, selected buttons, hover surfaces, and both gradient endpoints. Selection
+also uses checkmarks and underlines. Increased-contrast preferences remove the
+gradient; forced-colors mode uses the system palette.
+
 ## Sharing previews
 
 Generated pages include Open Graph and Twitter card metadata directly in HTML.

@@ -97,19 +97,38 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
 <meta name="twitter:description" content="${escape(description)}">
 <meta name="twitter:image" content="${image}">
 <meta name="twitter:image:alt" content="${imageAlt}">
-<style>body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:#20231f;background:#faf9f4}a{color:#215a44;text-underline-offset:.2em}nav{display:flex;gap:.5rem;overflow-x:auto;padding:.5rem}nav a{flex:none;box-sizing:border-box;min-height:44px;padding:.45rem .65rem;border:1px solid transparent;border-radius:.3rem;text-decoration:none}nav [aria-current=date]{font-weight:700;background:#20231f;color:#faf9f4;border-color:currentColor;text-decoration:underline;text-decoration-thickness:2px}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}.screenings{list-style:none;padding:0}.screenings li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid #d5d8ce}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid #a16920;padding-left:.75rem}:focus-visible{outline:3px solid #20231f;outline-offset:4px}
-/* Dark colors contrast with cream; badge tints mix 10% theater color with cream. */
+<style>
+:root{color-scheme:light;--paper:#faf9f4;--ink:#20231f;--link:#215a44;--rule:#d5d8ce;--hover:#e9e9e6;--notice:#a16920;--on-venue:#faf9f4;--selected-bg:#20231f;--selected-ink:#faf9f4}
+html{min-height:100%;background:var(--paper)}
+body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem;color:var(--ink)}a{color:var(--link);text-underline-offset:.2em}nav{display:flex;gap:.5rem;overflow-x:auto;padding:.5rem}nav a{flex:none;box-sizing:border-box;min-height:44px;padding:.45rem .65rem;border:1px solid transparent;border-radius:.3rem;text-decoration:none}nav [aria-current=date]{font-weight:700;background:var(--selected-bg);color:var(--selected-ink);border-color:currentColor;text-decoration:underline;text-decoration-thickness:2px}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}.screenings{list-style:none;padding:0}.screenings li{display:grid;grid-template-columns:5.5rem 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--rule)}li a{font-weight:650}p{margin:.25rem 0;font-size:.9rem}time{font-variant-numeric:tabular-nums}footer{margin-top:2rem;font-size:.85rem}.notice{border-left:3px solid var(--notice);padding-left:.75rem}:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+/* Venue names and checkmarks carry meaning independently of color. */
 [data-theater=trylon],[data-venue=trylon]{--venue-color:#215a44;--venue-tint:#e4e9e2}
 [data-theater=heights],[data-venue=heights]{--venue-color:#704470;--venue-tint:#ece7e7}
 [data-theater=parkway],[data-venue=parkway]{--venue-color:#91451f;--venue-tint:#f0e7df}
 [data-theater=riverview],[data-venue=riverview]{--venue-color:#285f8f;--venue-tint:#e5eaea}
 [data-theater=main],[data-venue=main]{--venue-color:#515d6b;--venue-tint:#e9e9e6}
 .venue-badge{display:inline-block;padding:.1em .45em;border-radius:.25rem;font-weight:600;color:var(--venue-color);background:var(--venue-tint)}
-[hidden]{display:none!important}#theater-filters{border:0;padding:0;margin:1.1rem 0 .5rem}#theater-filters legend{font-size:.9rem;font-weight:650;margin-bottom:.5rem}.theater-buttons{display:flex;flex-wrap:wrap;gap:.6rem}.theater-buttons button{font:inherit;font-size:.9rem;min-height:44px;padding:.4rem .7rem;border:1px solid var(--venue-color,#515d6b);border-radius:.3rem;background:#faf9f4;color:var(--venue-color,#515d6b);cursor:pointer}.theater-buttons button[aria-pressed=true]{background:var(--venue-color);color:#faf9f4}.theater-buttons button[data-theater]::before{content:"";display:inline-block;width:1em}.theater-buttons button[aria-pressed=true]::before{content:"✓"}.theater-buttons button:disabled{border-color:#d5d8ce;cursor:default}#filter-status{min-height:1.5em;margin:.5rem 0}
-@media(hover:hover){a:hover{text-decoration-thickness:.14em}nav a:not([aria-current]):hover{background:#e9e9e6;text-decoration:underline}.theater-buttons button:not(:disabled):hover{background:var(--venue-tint,#e9e9e6)}.theater-buttons button[aria-pressed=true]:hover{background:var(--venue-color);box-shadow:inset 0 0 0 1px #faf9f4}}
+[hidden]{display:none!important}#theater-filters{border:0;padding:0;margin:1.1rem 0 .5rem}#theater-filters legend{font-size:.9rem;font-weight:650;margin-bottom:.5rem}.theater-buttons{display:flex;flex-wrap:wrap;gap:.6rem}.theater-buttons button{font:inherit;font-size:.9rem;min-height:44px;padding:.4rem .7rem;border:1px solid var(--venue-color,var(--link));border-radius:.3rem;background:var(--paper);color:var(--venue-color,var(--link));cursor:pointer}.theater-buttons button[aria-pressed=true]{background:var(--venue-color);color:var(--on-venue)}.theater-buttons button[data-theater]::before{content:"";display:inline-block;width:1em}.theater-buttons button[aria-pressed=true]::before{content:"✓"}.theater-buttons button:disabled{border-color:var(--rule);cursor:default}#filter-status{min-height:1.5em;margin:.5rem 0}
+@media(hover:hover){a:hover{text-decoration-thickness:.14em}nav a:not([aria-current]):hover{background:var(--hover);text-decoration:underline}.theater-buttons button:not(:disabled):hover{background:var(--venue-tint,var(--hover))}.theater-buttons button[aria-pressed=true]:hover{background:var(--venue-color);box-shadow:inset 0 0 0 1px var(--on-venue)}}
 .theater-buttons button:not(:disabled):active{box-shadow:inset 0 0 0 2px currentColor}
 h1{font-size:1.1rem;font-weight:650;margin:1rem 0 .2rem}.site-name a{display:inline-block;padding:.2rem 0;color:inherit;text-decoration:none}.site-name a:hover{text-decoration:underline}.schedule-notes{margin-top:1.25rem}
-footer hr{border:0;border-top:1px solid #d5d8ce;margin:1.5rem 0 .75rem}.footer-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem}.footer-links span{margin-left:auto;text-align:right}
+footer hr{border:0;border-top:1px solid var(--rule);margin:1.5rem 0 .75rem}.footer-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem}.footer-links span{margin-left:auto;text-align:right}
+@media(prefers-color-scheme:dark){
+:root{color-scheme:dark;--paper:#171410;--ink:#eee3cf;--link:#d4b888;--rule:#625547;--hover:#30291f;--notice:#d4b888;--on-venue:#171410;--selected-bg:#ddc59c;--selected-ink:#211c15}
+html{background-image:linear-gradient(180deg,#231d16,var(--paper) 32rem);background-repeat:no-repeat}
+[data-theater=trylon],[data-venue=trylon]{--venue-color:#afc7a8;--venue-tint:#263029}
+[data-theater=heights],[data-venue=heights]{--venue-color:#cfb6d6;--venue-tint:#302631}
+[data-theater=parkway],[data-venue=parkway]{--venue-color:#e7b88a;--venue-tint:#352a21}
+[data-theater=riverview],[data-venue=riverview]{--venue-color:#aec6dc;--venue-tint:#242c34}
+[data-theater=main],[data-venue=main]{--venue-color:#c8c0b4;--venue-tint:#2e2a24}
+}
+@media(prefers-contrast:more){:root{--rule:var(--ink)}html{background-image:none}}
+@media(forced-colors:active){
+html{background-image:none}
+.theater-buttons button[aria-pressed=true],nav [aria-current=date]{background:Highlight;color:HighlightText;border-color:Highlight}
+.venue-badge{border:1px solid CanvasText}
+:focus-visible{outline-color:Highlight}
+}
 </style></head>
 <body><header><p class="site-name"><a href="/">tcmovie.club</a></p>
 <h1>Screenings on<span class="visually-hidden"> ${escape(label)}</span></h1>

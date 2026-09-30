@@ -68,3 +68,37 @@ test("ratings controls, scores, and unavailable labels are absent", () => {
   assert.doesNotMatch(html, /Ratings unavailable|Show ratings|www\.imdb\.com/);
   assert.ok($(".screenings li").length);
 });
+
+test("theme text and theater states retain contrast against surfaces and gradient endpoints", () => {
+  const $ = load(renderDate("2026-09-29", [], sources));
+  const css = $("style").text();
+  const colors = rule => Object.fromEntries([...rule.matchAll(/--([\w-]+):(#[a-f0-9]{6})/g)].map(match => [match[1], match[2]]));
+  const themes = [...css.matchAll(/:root\{([^}]+)\}/g)].slice(0, 2).map(match => colors(match[1]));
+  const venues = [...css.matchAll(/\[data-theater=\w+\],\[data-venue=\w+\]\{([^}]+)\}/g)].map(match => colors(match[1]));
+  const luminance = hex => hex.slice(1).match(/../g).map(value => parseInt(value, 16) / 255)
+    .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4)
+    .reduce((sum, value, i) => sum + value * [.2126, .7152, .0722][i], 0);
+  const contrast = (a, b) => {
+    const values = [luminance(a), luminance(b)].sort((a, b) => a - b);
+    return (values[1] + .05) / (values[0] + .05);
+  };
+  assert.equal(themes.length, 2);
+  assert.equal(venues.length, 10);
+  const gradientTop = css.match(/linear-gradient\(180deg,(#[a-f0-9]{6})/)[1];
+  for (const [index, theme] of themes.entries()) {
+    const backgrounds = index ? [theme.paper, gradientTop] : [theme.paper];
+    const pairs = backgrounds.flatMap(background => [[theme.ink, background], [theme.link, background]]);
+    pairs.push([theme.link, theme.hover], [theme["selected-ink"], theme["selected-bg"]]);
+    for (const venue of venues.slice(index * 5, index * 5 + 5)) {
+      pairs.push([venue["venue-color"], venue["venue-tint"]], [theme["on-venue"], venue["venue-color"]]);
+      for (const background of backgrounds) pairs.push([venue["venue-color"], background]);
+    }
+    for (const [foreground, background] of pairs) {
+      const ratio = contrast(foreground, background);
+      assert.ok(ratio >= (index ? 7 : 4.5), `${index ? "dark" : "light"}: ${foreground} on ${background}: ${ratio.toFixed(2)}:1`);
+    }
+  }
+  assert.match(css, /@media\(prefers-color-scheme:dark\)/);
+  assert.match(css, /@media\(forced-colors:active\)/);
+  assert.match(css, /@media\(prefers-contrast:more\).*background-image:none/);
+});
