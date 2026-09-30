@@ -12,9 +12,10 @@ import { acceptSource, failed, lastGood, readSource, writeSource } from "./store
 import type { StoredSource } from "./store.js";
 import { writeSite } from "./site.js";
 import type { SourceInfo } from "./site.js";
-import { datesFrom } from "./time.js";
+import { chicagoDate, datesFrom } from "./time.js";
+import { fetchRatings } from "./ratings.js";
 
-export async function collect(options: { contact: string; storage: string; output: string; trylon?: "disabled" | "manual" | "morning-only"; savedTrylon?: StoredSource }, clock: Runtime = runtime) {
+export async function collect(options: { contact: string; storage: string; output: string; trylon?: "disabled" | "manual" | "morning-only"; savedTrylon?: StoredSource; omdbKey?: string | undefined }, clock: Runtime = runtime) {
   const agent = userAgent(options.contact);
   const trylonEnabled = options.trylon === "manual" || options.trylon === "morning-only";
   const started = clock.now();
@@ -84,7 +85,10 @@ export async function collect(options: { contact: string; storage: string; outpu
     });
     const sources = collected.map(source => source.info);
     const screenings = dedupe(collected.flatMap(source => source.screenings));
-    await writeSite(options.output, datesFrom(firstDate, 14), screenings, sources);
+    const dates = datesFrom(firstDate, 14);
+    const ratings = await fetchRatings(screenings.filter(show => dates.includes(chicagoDate(show.start.at))).map(show => show.title),
+      options.storage, options.omdbKey, clock);
+    await writeSite(options.output, dates, screenings, sources, ratings);
     return { sources, screenings: screenings.length, failed: collected.some(source => source.failed) };
   } finally { await rmdir(lock); }
 }
@@ -93,7 +97,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   try {
     const result = await collect({ contact: process.env.TC_CONTACT ?? "",
       storage: resolve(process.argv[2] ?? ".state/live"), output: resolve(process.argv[3] ?? "site"),
-      trylon: process.env.TC_ENABLE_TRYLON === "1" ? "morning-only" : "disabled" });
+      trylon: process.env.TC_ENABLE_TRYLON === "1" ? "morning-only" : "disabled", omdbKey: process.env.OMDB_API_KEY });
     for (const source of result.sources) {
       console.log(`${source.sourceId}: ${source.checkedAt ?? "never checked"}. ${source.note}`);
       if (source.error) console.error(`${source.sourceId}: ${source.error}`);

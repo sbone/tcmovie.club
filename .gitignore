@@ -5,3 +5,6 @@ dist/
 /trylon-headers.txt
 /site/
 /.state/
+.env
+.env.*
+!.env.example

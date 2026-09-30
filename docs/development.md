@@ -59,6 +59,47 @@ completion or Ctrl-C; collected state and preview files remain for inspection.
 This does not schedule updates or run the offline generator after collection.
 `npm run generate` still builds the separate historical fixture preview in `site/`.
 
+### Optional movie ratings
+
+Get a [free OMDb API key](https://www.omdbapi.com/apikey.aspx), activate it using
+their email, and copy `.env.example` to `.env.local` in the project root:
+
+```sh
+cp -n .env.example .env.local
+```
+
+Edit `.env.local` to set `OMDB_API_KEY=your-activated-key`, then run
+`npm run refresh:publish`. Node's built-in environment-file support loads it for
+`npm run refresh`, `npm run refresh:publish`, and `npm run collect` (Node 22.9+
+required). Git ignores `.env` and `.env.*`, except the empty `.env.example` template.
+Existing exported environment variables take precedence over the file; use
+`unset OMDB_API_KEY` if you previously exported a different key.
+Don't commit the key or put it in browser code. Without a key,
+refreshes use any saved ratings and make no OMDb requests. The offline fixture
+generator does not fetch ratings.
+
+After collecting schedules, the collector looks up distinct titles in the displayed
+14-day window. It accepts only a unique exact title match from a complete movie
+search result, then fetches details by IMDb ID. Ambiguous remakes, unmatched event
+names, and unavailable scores remain unrated; no fuzzy guesses. This conservative
+matching may miss films with alternate titles or extra wording in venue listings.
+
+`.state/live/ratings.json` holds matches, scores, original check timestamps, and
+request accounting. Matches refresh every seven days by IMDb ID; unsuccessful
+matches can be searched again after a day. Requests are sequential, have a ten-second
+timeout, and are limited to 200 per run and 800 per UTC day across runs using this
+state directory. The provider's quota also includes any other use of your key.
+On API/network failure the collector stops rating lookups for an hour, retains
+saved ratings, and continues building the schedule. Corrupt local state stops the
+build for review. Neither keys nor raw API responses are published.
+
+The **Show ratings** checkbox starts unchecked; `?ratings=1` enables it on load.
+Date links and browser Back/Forward preserve ratings alongside theater selection.
+Scores and IMDb links are pre-rendered as small text beneath movie titles, with
+OMDb attribution and no visitor API requests. Hovering the rating line shows the
+matched film/year and its check timestamp. Missing matches say “Ratings unavailable.”
+With JavaScript disabled, screenings still work and ratings remain hidden.
+
 ### Collection without the interactive preview
 
 ```sh
@@ -113,7 +154,7 @@ host. For cron implementations supporting `CRON_TZ`, a template is:
 ```cron
 CRON_TZ=America/Chicago
 TC_CONTACT=https://your-public-project.example
-0 7,19 * * * cd /absolute/path/to/tc-movie-cal && /absolute/path/to/node dist/collect.js
+0 7,19 * * * cd /absolute/path/to/tc-movie-cal && /absolute/path/to/node --env-file-if-exists=.env.local dist/collect.js
 ```
 
 Build once with `npm run build`; set real paths/contact before installing this.
