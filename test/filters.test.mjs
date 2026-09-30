@@ -14,18 +14,17 @@ function page(search = "") {
   const rows = ["trylon", "heights", "main"].map(venue => element({ venue }));
   const links = [{ href: "/2026-09-30/" }];
   const status = element(), reset = element();
-  const ratingsControl = element(), ratingsToggle = element(), ratingDetails = [element(), element()];
   const controls = { hidden: true, querySelectorAll: () => buttons, querySelector: () => reset };
   const document = {
-    querySelector: selector => ({ "#theater-filters": controls, "#filter-status": status, "#ratings-control": ratingsControl, "#show-ratings": ratingsToggle })[selector],
-    querySelectorAll: selector => ({ ".screenings li[data-venue]": rows, 'nav[aria-label="Dates"] a': links, "[data-ratings]": ratingDetails })[selector],
+    querySelector: selector => ({ "#theater-filters": controls, "#filter-status": status })[selector],
+    querySelectorAll: selector => ({ ".screenings li[data-venue]": rows, 'nav[aria-label="Dates"] a': links })[selector],
   };
   const location = { href: `https://tcmovie.club/2026-09-29/${search}` };
   const history = { pushState: (_state, _title, url) => { location.href = url.href; } };
   const listeners = {};
   const window = { addEventListener: (name, callback) => { listeners[name] = callback; } };
   runInNewContext(`(${initTheaterFilters.toString()})();`, { document, location, history, window, URL });
-  return { buttons, rows, links, status, reset, controls, location, listeners, ratingsControl, ratingsToggle, ratingDetails,
+  return { buttons, rows, links, status, reset, controls, location, listeners,
     visible: () => rows.filter(row => !row.hidden).map(row => row.dataset.venue) };
 }
 
@@ -52,31 +51,13 @@ test("theater selections round-trip through URLs, date links, reset, and history
   assert.equal(p.reset.disabled, true);
 });
 
-test("ratings default off and round-trip with theater filters, dates, and history", () => {
-  const p = page();
-  assert.equal(p.ratingsControl.hidden, false);
-  assert.equal(p.ratingsToggle.checked, false);
-  assert.ok(p.ratingDetails.every(detail => detail.hidden));
-  p.ratingsToggle.checked = true;
-  p.ratingsToggle.listeners.change();
-  assert.equal(new URL(p.location.href).searchParams.get("ratings"), "1");
-  assert.ok(p.ratingDetails.every(detail => !detail.hidden));
-  p.buttons[0].click();
-  assert.equal(new URL(p.links[0].href).searchParams.get("ratings"), "1");
-  p.reset.click();
-  assert.equal(p.links[0].href, "https://tcmovie.club/2026-09-30/?ratings=1");
-  p.ratingsToggle.checked = false;
-  p.ratingsToggle.listeners.change();
-  assert.equal(new URL(p.location.href).searchParams.has("ratings"), false);
-  p.location.href = "https://tcmovie.club/?theaters=main&ratings=1";
-  p.listeners.popstate();
-  assert.equal(p.ratingsToggle.checked, true);
+test("old ratings URLs leave theater filtering working and are dropped from date links", () => {
+  const p = page("?ratings=1&theaters=main");
   assert.deepEqual(p.visible(), ["main"]);
-  p.location.href = "https://tcmovie.club/";
-  p.listeners.popstate();
-  assert.ok(p.ratingDetails.every(detail => detail.hidden));
-  assert.equal(page("?ratings=1").ratingsToggle.checked, true);
-  assert.equal(page("?ratings=0").ratingsToggle.checked, false);
+  assert.equal(new URL(p.links[0].href).searchParams.has("ratings"), false);
+  p.reset.click();
+  assert.equal(new URL(p.location.href).searchParams.has("ratings"), false);
+  assert.equal(p.visible().length, 3);
 });
 
 test("all, none, unknown venues, and selected venues with no screenings stay distinct", () => {

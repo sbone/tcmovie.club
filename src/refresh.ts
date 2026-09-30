@@ -43,7 +43,7 @@ async function refresh() {
   const output = join(await mkdtemp(resolve(".state/previews/refresh-")), "site");
   console.log("Refreshing eligible theaters, including Trylon when its 24-hour wait has elapsed. No immediate retries.");
   const result = await collect({ contact: process.env.TC_CONTACT ?? "https://tcmovie.club",
-    storage: resolve(".state/live"), output, savedTrylon, trylon: "manual", omdbKey: process.env.OMDB_API_KEY });
+    storage: resolve(".state/live"), output, savedTrylon, trylon: "manual" });
   const records = screeningSchema.array().parse(JSON.parse(await readFile(join(output, "screenings.json"), "utf8")));
   const dates = new Set(datesFrom(chicagoDate(new Date().toISOString()), 14));
   const stamp = new Intl.DateTimeFormat("en-US", { timeZone, dateStyle: "medium", timeStyle: "short" });

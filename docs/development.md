@@ -59,46 +59,21 @@ completion or Ctrl-C; collected state and preview files remain for inspection.
 This does not schedule updates or run the offline generator after collection.
 `npm run generate` still builds the separate historical fixture preview in `site/`.
 
-### Optional movie ratings
+### Movie ratings experiment (paused)
 
-Get a [free OMDb API key](https://www.omdbapi.com/apikey.aspx), activate it using
-their email, and copy `.env.example` to `.env.local` in the project root:
+Ratings, their checkbox, and IMDb links are currently omitted from generated pages.
+Old `?ratings=1` links cannot enable them. Refresh and collection make no OMDb calls,
+even when `OMDB_API_KEY` is set. The local cache and tested matching code in
+`src/ratings.ts` are retained for investigation.
 
-```sh
-cp -n .env.example .env.local
-```
+The first pass conflated an unmatched movie with a missing score. Before restoring
+ratings, distinguish those outcomes and improve film identity using release years
+or reviewed IMDb IDs. Explicit trailing years and format suffixes are supported;
+ambiguous remakes, incomplete search results, and alternate titles remain unresolved.
 
-Edit `.env.local` to set `OMDB_API_KEY=your-activated-key`, then run
-`npm run refresh:publish`. Node's built-in environment-file support loads it for
-`npm run refresh`, `npm run refresh:publish`, and `npm run collect` (Node 22.9+
-required). Git ignores `.env` and `.env.*`, except the empty `.env.example` template.
-Existing exported environment variables take precedence over the file; use
-`unset OMDB_API_KEY` if you previously exported a different key.
-Don't commit the key or put it in browser code. Without a key,
-refreshes use any saved ratings and make no OMDb requests. The offline fixture
-generator does not fetch ratings.
-
-After collecting schedules, the collector looks up distinct titles in the displayed
-14-day window. It accepts only a unique exact title match from a complete movie
-search result, then fetches details by IMDb ID. Ambiguous remakes, unmatched event
-names, and unavailable scores remain unrated; no fuzzy guesses. This conservative
-matching may miss films with alternate titles or extra wording in venue listings.
-
-`.state/live/ratings.json` holds matches, scores, original check timestamps, and
-request accounting. Matches refresh every seven days by IMDb ID; unsuccessful
-matches can be searched again after a day. Requests are sequential, have a ten-second
-timeout, and are limited to 200 per run and 800 per UTC day across runs using this
-state directory. The provider's quota also includes any other use of your key.
-On API/network failure the collector stops rating lookups for an hour, retains
-saved ratings, and continues building the schedule. Corrupt local state stops the
-build for review. Neither keys nor raw API responses are published.
-
-The **Show ratings** checkbox starts unchecked; `?ratings=1` enables it on load.
-Date links and browser Back/Forward preserve ratings alongside theater selection.
-Scores and IMDb links are pre-rendered as small text beneath movie titles, with
-OMDb attribution and no visitor API requests. Hovering the rating line shows the
-matched film/year and its check timestamp. Missing matches say “Ratings unavailable.”
-With JavaScript disabled, screenings still work and ratings remain hidden.
+Keep your key in `.env.local`, which Git ignores. The Node 22.9+ built-in environment
+file loader still runs for refresh/collect commands; exported variables take precedence.
+The committed `.env.example` contains only an empty key placeholder.
 
 ### Collection without the interactive preview
 

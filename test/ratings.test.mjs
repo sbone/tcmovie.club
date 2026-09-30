@@ -3,13 +3,70 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { fetchRatings } from "../dist/ratings.js";
+import { fetchRatings, movieQuery } from "../dist/ratings.js";
 
 const day = 86_400_000;
 const start = Date.parse("2026-09-29T12:00:00Z");
 const detail = { Response: "True", Title: "Akira", Year: "1988", Type: "movie", imdbID: "tt0094625",
   Ratings: [{ Source: "Metacritic", Value: "67/100" }, { Source: "Rotten Tomatoes", Value: "91%" },
     { Source: "Internet Movie Database", Value: "8.0/10" }] };
+
+test("lookup cleanup removes only explicit trailing years and formats", () => {
+  for (const title of ["AKIRA (1988)", "AKIRA (1988) in 35mm", "AKIRA in 35mm (1988)", "AKIRA (1988) (4K)"]) {
+    assert.deepEqual(movieQuery(title), { title: "AKIRA", year: "1988" });
+  }
+  assert.deepEqual(movieQuery("Suspiria in 4K"), { title: "Suspiria", year: null });
+  assert.deepEqual(movieQuery("Day of Wrath in 35mm"), { title: "Day of Wrath", year: null });
+  for (const title of ["1917", "Class of 1984", "1984", "In 35mm", "Film (Director’s Cut)",
+    "Film + Short", "Opening Night: Film", "Poltergeist (1982) 35mm presentation w/ pre-movie DJ set"]) {
+    assert.deepEqual(movieQuery(title), { title, year: null });
+  }
+});
+
+test("changed queries retry cached misses, constrain years, and leave ambiguous remakes unrated", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tc-ratings-cleanup-"));
+  const calls = [];
+  const clock = { now: () => start, fetch: async url => {
+    const q = url.searchParams;
+    calls.push(q);
+    if (q.has("i")) return Response.json(detail);
+    const Search = q.get("s") === "AKIRA"
+      ? [{ Title: "Akira", Year: "1988", Type: "movie", imdbID: "tt0094625" },
+        { Title: "Akira", Year: "2016", Type: "movie", imdbID: "tt1234567" }]
+      : ["1977", "2018"].map((Year, i) => ({ Title: "Suspiria", Year, Type: "movie", imdbID: `tt123456${i}` }));
+    return Response.json({ Response: "True", totalResults: String(Search.length), Search });
+  } };
+  try {
+    const old = { checkedAt: new Date(start).toISOString(), movie: null };
+    await writeFile(join(directory, "ratings.json"), JSON.stringify({
+      date: "2026-09-29", requests: 89, retryAt: 0,
+      entries: { "akira (1988)": old, "suspiria in 4k": old, untouched: old },
+    }));
+    const titles = ["AKIRA (1988)", "Suspiria in 4K", "Untouched"];
+    const ratings = await fetchRatings(titles, directory, "key", clock);
+    assert.equal(calls.length, 3);
+    assert.equal(calls[0].get("s"), "AKIRA");
+    assert.equal(calls[0].get("y"), "1988");
+    assert.equal(calls[2].get("s"), "Suspiria");
+    assert.equal(calls[2].has("y"), false);
+    assert.equal(ratings["akira (1988)"].movie.imdbId, "tt0094625");
+    assert.equal(ratings["suspiria in 4k"].movie, null);
+    assert.equal(JSON.parse(await readFile(join(directory, "ratings.json"), "utf8")).requests, 92);
+    await fetchRatings(titles, directory, "key", clock);
+    assert.equal(calls.length, 3, "cleaned misses keep their normal retry interval");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("detail year must agree with the listing even when search appeared to match", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tc-ratings-year-"));
+  const clock = { now: () => start, fetch: async url => Response.json(url.searchParams.has("i")
+    ? { ...detail, Year: "2016" }
+    : { Response: "True", totalResults: "1", Search: [detail] }) };
+  try {
+    const ratings = await fetchRatings(["Akira (1988)"], directory, "key", clock);
+    assert.equal(ratings["akira (1988)"], undefined);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 test("OMDb deduplicates titles, rejects ambiguous matches, caches, and retains data on failure", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-ratings-"));

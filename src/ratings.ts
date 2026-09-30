@@ -12,7 +12,7 @@ const movieSchema = z.object({
   rottenTomatoes: z.number().int().min(0).max(100).nullable(),
   imdb: z.number().min(0).max(10).nullable(),
 }).readonly();
-const entrySchema = z.object({ checkedAt: instantSchema, movie: movieSchema.nullable() }).readonly();
+const entrySchema = z.object({ checkedAt: instantSchema, movie: movieSchema.nullable(), query: z.string().optional() }).readonly();
 export type FilmRatings = z.infer<typeof entrySchema>;
 export type Ratings = Readonly<Record<string, FilmRatings>>;
 const cacheSchema = z.object({
@@ -22,6 +22,14 @@ const cacheSchema = z.object({
 
 export const ratingKey = (title: string) => title.normalize("NFKC").trim().toLowerCase()
   .replace(/[‘’]/g, "'").replace(/\s+/g, " ");
+
+export function movieQuery(listing: string) {
+  // ponytail: only explicit trailing years/formats; event prose and aliases need reviewed matches.
+  const format = /\s+(?:in\s+(?:35mm|70mm|4k|dcp)|\((?:35mm|70mm|4k|dcp)\))$/i;
+  const title = listing.trim().replace(format, "");
+  const year = /^(\S.*?)\s+\(((?:18|19|20|21)\d{2})\)$/.exec(title);
+  return { title: (year?.[1] ?? title).replace(format, ""), year: year?.[2] ?? null };
+}
 
 const responseSchema = z.discriminatedUnion("Response", [
   z.object({ Response: z.literal("True") }).passthrough(),
@@ -82,13 +90,18 @@ export async function fetchRatings(titles: readonly string[], directory: string,
   };
   for (const [id, title] of wanted) {
     const previous = cache.entries[id];
-    if (previous && clock.now() - Date.parse(previous.checkedAt) < (previous.movie ? 7 : 1) * day) continue;
+    const query = movieQuery(title);
+    const signature = JSON.stringify([ratingKey(query.title), query.year]);
+    const sameQuery = signature === (previous?.query ?? JSON.stringify([id, null]));
+    if (previous && sameQuery && clock.now() - Date.parse(previous.checkedAt) < (previous.movie ? 7 : 1) * day) continue;
+    const matchesQuery = (movie: { Title: string; Year: string }) =>
+      ratingKey(movieQuery(movie.Title).title) === ratingKey(query.title) && (!query.year || movie.Year === query.year);
     try {
-      let match = previous?.movie?.imdbId;
+      let match = sameQuery ? previous?.movie?.imdbId : undefined;
       if (!match) {
-        const body = await request({ s: title, type: "movie" });
+        const body = await request({ s: query.title, type: "movie", ...(query.year ? { y: query.year } : {}) });
         const search = body ? searchSchema.parse(body) : null;
-        const matches = search?.Search.filter(movie => movie.Type === "movie" && ratingKey(movie.Title) === id) ?? [];
+        const matches = search?.Search.filter(movie => movie.Type === "movie" && matchesQuery(movie)) ?? [];
         // Do not choose a remake, fuzzy result, or a match from an incomplete result set.
         if (search && Number(search.totalResults) <= search.Search.length && matches.length === 1) match = matches[0]!.imdbID;
       }
@@ -97,14 +110,14 @@ export async function fetchRatings(titles: readonly string[], directory: string,
         const body = await request({ i: match });
         if (!body) throw new Error("Previously matched movie unavailable");
         const detail = detailSchema.parse(body);
-        if (detail.imdbID !== match || ratingKey(detail.Title) !== id) throw new Error("Movie identity changed");
+        if (detail.imdbID !== match || !matchesQuery(detail)) throw new Error("Movie identity changed");
         const values = new Map(detail.Ratings.map(rating => [rating.Source, rating.Value]));
         movie = { imdbId: match, title: detail.Title, year: detail.Year,
           metacritic: score(values.get("Metacritic"), "/100", 100),
           rottenTomatoes: score(values.get("Rotten Tomatoes"), "%", 100),
           imdb: score(values.get("Internet Movie Database"), "/10", 10) };
       }
-      cache.entries[id] = { checkedAt: instantSchema.parse(new Date(clock.now()).toISOString()), movie };
+      cache.entries[id] = { checkedAt: instantSchema.parse(new Date(clock.now()).toISOString()), movie, query: signature };
       await save();
     } catch {
       cache.retryAt = clock.now() + 60 * 60_000;

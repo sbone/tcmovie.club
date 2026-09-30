@@ -61,21 +61,10 @@ test("homepage and dated pages have distinct share URLs and static large-image m
   }
 });
 
-test("ratings are static, hidden, labeled, and link to the matched IMDb movie", () => {
-  const base = parsed.value.screenings[0];
-  const records = [
-    { ...base, title: "Akira", start: { kind: "screening", at: "2026-09-30T00:00:00.000Z", doorsAt: null } },
-    { ...base, title: "Unmatched", start: { kind: "screening", at: "2026-09-30T02:00:00.000Z", doorsAt: null } },
-  ];
-  const ratings = { akira: { checkedAt: "2026-09-29T12:00:00Z", movie: {
-    imdbId: "tt0094625", title: 'Akira "<test>"', year: "1988", metacritic: 0, rottenTomatoes: 91, imdb: null,
-  } } };
-  const $ = load(renderDate("2026-09-29", records, sources, ["2026-09-29"], false, ratings));
-  assert.equal($("#ratings-control[hidden] input[type=checkbox]:not([checked])").length, 1);
-  assert.equal($(".movie-ratings[hidden]").length, 2);
-  assert.match($(".movie-ratings").first().text(), /Metacritic 0\/100 · Rotten Tomatoes 91% · IMDb/);
-  assert.equal($(".movie-ratings a").attr("href"), "https://www.imdb.com/title/tt0094625/");
-  assert.equal($(".movie-ratings").last().text(), "Ratings unavailable");
-  assert.equal($("test").length, 0);
-  assert.match($(".movie-ratings").first().attr("title"), /1988.*Ratings checked/);
+test("ratings controls, scores, and unavailable labels are absent", () => {
+  const html = renderDate("2027-02-24", parsed.value.screenings, sources);
+  const $ = load(html);
+  assert.equal($("#ratings-control, #show-ratings, [data-ratings], .movie-ratings").length, 0);
+  assert.doesNotMatch(html, /Ratings unavailable|Show ratings|www\.imdb\.com/);
+  assert.ok($(".screenings li").length);
 });
