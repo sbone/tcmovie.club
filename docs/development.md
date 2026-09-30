@@ -26,6 +26,14 @@ authentication). The command runs the tests, refreshes eligible sources, and bui
 a separate preview under `.state/previews/`. Its default collector identity is
 `https://tcmovie.club`; `TC_CONTACT` can override it.
 
+Use `npm run refresh:publish` to also commit tracked code changes after collection
+and before opening the preview. This stages edits/deletions to tracked files and
+includes any new files you already staged with `git add`. Untracked files are not
+automatically added. Data-only refreshes create no empty commit: generated pages,
+HTTP caches, and source state stay outside Git. A commit failure stops the workflow.
+The commit is retained even if you decline deployment; this command does not push.
+Deployment still requires an explicit `y` or `yes` after the local preview.
+
 The manual workflow includes Trylon whenever at least 24 hours have passed since
 its last request; it can run at any time of day. All sources still honor robots,
 access pauses, request budgets, conditional requests, and backoff. Re-running

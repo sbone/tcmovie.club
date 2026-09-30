@@ -10,7 +10,8 @@
     "check": "npm test",
     "generate": "npm run build && node dist/generate.js",
     "collect": "npm run build && node dist/collect.js",
-    "refresh": "npm run check && node dist/refresh.js"
+    "refresh": "npm run check && node dist/refresh.js",
+    "refresh:publish": "npm run refresh -- --commit"
   },
   "dependencies": {
     "@js-temporal/polyfill": "0.5.1",

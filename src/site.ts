@@ -123,7 +123,7 @@ ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
 <div class="schedule-notes"><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p>
 ${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}</div>
 <section aria-labelledby="about-tcmc"><h2 id="about-tcmc">About TCMC</h2>
-<p>Built by a film enthusiast who wanted one place to see what's playing on a random night.</p>
+<p>Built by <a href="https://letterboxd.com/sbone/">a film enthusiast</a> who wanted one place to see what's playing on a random night.</p>
 <p>Twin Cities Movie Screenings brings showtimes from these fine theaters into one place:</p>
 <ul><li><a href="https://www.trylon.org/">Trylon Cinema</a></li>
 <li><a href="https://www.heightstheater.com/">Heights Theater</a></li>

@@ -1,8 +1,10 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { mkdir, mkdtemp, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
+import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 import { loadCapturedSource } from "./captures.js";
 import { collect } from "./collect.js";
 import { screeningSchema, timeZone } from "./domain.js";
@@ -19,7 +21,19 @@ function command(program: string, args: string[]): Promise<void> {
   });
 }
 
+export async function commitTrackedChanges(directory: string) {
+  const git = (args: string[]) => promisify(execFile)("git", args, { cwd: directory });
+  await git(["add", "-u"]);
+  const { stdout: changes } = await git(["diff", "--cached", "--name-only"]);
+  if (!changes.trim()) { console.log("No code changes to commit; collected data stays outside Git."); return false; }
+  console.log((await git(["diff", "--cached", "--stat"])).stdout.trim());
+  console.log((await git(["commit", "-m", "Update site for manual publication"])).stdout.trim());
+  return true;
+}
+
 async function refresh() {
+  const args = process.argv.slice(2);
+  if (args.some(arg => arg !== "--commit")) throw new Error("Usage: npm run refresh [-- --commit]");
   if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error("Run npm run refresh in an interactive terminal; deployment requires an explicit yes.");
   await command("python3", ["--version"]);
   const capture = await loadCapturedSource("trylon", resolve("test/fixtures"));
@@ -42,6 +56,7 @@ async function refresh() {
     for (const note of source.diagnostics ?? []) if (note.kind !== "excluded") console.log(`  ${note.kind}: ${note.record}: ${note.message}`);
   }
   console.log(`\nPreview files: ${output}`);
+  if (args.includes("--commit")) await commitTrackedChanges(process.cwd());
   let server: ChildProcess | undefined;
   const stop = () => { server?.kill(); };
   const interrupt = () => { stop(); process.exit(130); };
@@ -88,4 +103,6 @@ async function refresh() {
   }
 }
 
-refresh().catch(error => { console.error(errorMessage(error)); process.exitCode = 1; });
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  refresh().catch(error => { console.error(errorMessage(error)); process.exitCode = 1; });
+}
