@@ -204,7 +204,7 @@ gradient; forced-colors mode uses the system palette.
 
 Generated pages include Open Graph and Twitter card metadata directly in HTML.
 Each date gets a 1200 × 630 PNG with its date, count of non-cancelled screenings,
-and the theaters represented that day. The homepage uses the first date in the
+and all five covered theaters, including those without listings that day. The homepage uses the first date in the
 published schedule. Descriptions use “See films on” and Central Time wording.
 
 The [SVG template](../assets/social-card.svg) is rendered at build time with

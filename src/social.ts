@@ -17,11 +17,11 @@ const format = (date: string, year: boolean) => new Intl.DateTimeFormat("en-US",
 export function socialCard(date: string, day: readonly Screening[]) {
   const listed = day.filter(show => show.status.kind !== "cancelled");
   const active = venues.filter(venue => listed.some(show => show.venueId === venue.id));
-  const summary = `${listed.length} screening${listed.length === 1 ? "" : "s"} · ${active.length} theater${active.length === 1 ? "" : "s"}`;
+  const summary = `${listed.length} screening${listed.length === 1 ? "" : "s"} · ${venues.length} theaters covered`;
   const names = new Intl.ListFormat("en-US").format(active.map(venue => venue.name));
   const description = `${listed.length ? `${listed.length} screening${listed.length === 1 ? "" : "s"} at ${names}` : "No screenings listed"}. See films on ${format(date, true)}. All times Central.`;
   let x = 72;
-  const badges = active.map(venue => {
+  const badges = venues.map(venue => {
     const badge = `<rect x="${x}" y="352" width="${venue.width}" height="64" rx="8" fill="${venue.tint}"/><text x="${x + venue.width / 2}" y="394" fill="${venue.color}">${venue.name}</text>`;
     x += venue.width + 32;
     return badge;
