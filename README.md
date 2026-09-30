@@ -64,7 +64,8 @@ are welcome. You don't need to write code to help.
 
 ## Run it locally
 
-With Node.js 22.9+, npm, and Python 3 installed, run these commands from a checkout:
+With Node.js 24 LTS (24.21.0 pinned in `.tool-versions`), npm, and Python 3
+installed, run these commands from a checkout:
 
 ```sh
 npm ci
