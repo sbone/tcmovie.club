@@ -71,10 +71,11 @@ installed, run these commands from a checkout:
 npm ci
 npm run check
 npm run generate
-python3 -m http.server 8000 --bind 127.0.0.1 --directory site
+python3 -m http.server 8000 --bind 0.0.0.0 --directory site
 ```
 
-Open <http://127.0.0.1:8000>. This offline preview uses saved inputs beginning
+Open <http://127.0.0.1:8000> on the server, or `http://<server-IP>:8000` on another
+computer using the server's LAN or Tailscale IP. This offline preview uses saved inputs beginning
 **September 29, 2026**. Tests and generation make no requests to theater websites.
 Generated files stay out of Git.
 

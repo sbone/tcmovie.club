@@ -48,8 +48,10 @@ forward offline corrections. The feed's known coverage gaps remain labeled.
 Other theaters use `.state/live`, including its persistent request budgets and
 backoff. Running again within the same collection window reuses their data.
 
-After printing each theater's count and freshness, it starts a localhost-only
-server on an available port and opens the preview on macOS. Check the dates,
+After printing each theater's count and freshness, it starts a server bound to
+`0.0.0.0` on an available port and opens the local preview on macOS. From another
+computer, use the server's LAN or Tailscale IP with the printed port; `0.0.0.0`
+is the listening address, not the address to enter in a browser. Check the dates,
 filters, and source notes, then answer `y` or `yes` to deploy those exact files to
 `tcmovieclub`'s production branch, `main`. Enter or any other answer declines.
 Collection errors remain visible; a source with no saved schedule blocks

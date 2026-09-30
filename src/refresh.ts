@@ -63,7 +63,7 @@ async function refresh() {
   process.once("SIGINT", interrupt);
   process.once("SIGTERM", interrupt);
   try {
-    server = spawn("python3", ["-u", "-m", "http.server", "0", "--bind", "127.0.0.1", "--directory", output],
+    server = spawn("python3", ["-u", "-m", "http.server", "0", "--bind", "0.0.0.0", "--directory", output],
       { stdio: ["ignore", "pipe", "inherit"] });
     const child = server;
     const port = await new Promise<string>((done, reject) => {
@@ -72,14 +72,14 @@ async function refresh() {
       child.once("exit", code => reject(new Error(`Preview server exited with ${code}`)));
       child.stdout!.on("data", chunk => {
         message += chunk.toString();
-        const match = /Serving HTTP on 127\.0\.0\.1 port (\d+)/.exec(message);
+        const match = /Serving HTTP on 0\.0\.0\.0 port (\d+)/.exec(message);
         if (match?.[1]) done(match[1]);
       });
     });
     const url = `http://127.0.0.1:${port}/`;
     const response = await fetch(url);
     if (!response.ok || !(await response.text()).includes("Screenings on")) throw new Error("Local preview failed its HTTP smoke check.");
-    console.log(`\nPreview: ${url}\nCheck today, another date, theater filters, and source freshness before deploying.`);
+    console.log(`\nPreview: ${url}\nFrom another computer: http://<server-LAN-or-Tailscale-IP>:${port}/\nCheck today, another date, theater filters, and source freshness before deploying.`);
     if (process.platform === "darwin") await command("open", [url]).catch(() => console.log(`Open ${url} in your browser.`));
     if (!records.length || result.sources.some(source => !source.checkedAt)) {
       console.error("Deployment blocked: a theater has no saved schedule. Review the errors above before replacing the published site.");
