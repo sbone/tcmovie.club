@@ -1,12 +1,30 @@
 # tcmovie.club
 
-**Twin Cities Movie Club** — quickly see what movies are playing at the most exquisite Twin Cities theaters.
+**Twin Cities Movie Club — find a film tonight. Fast.**
 
-[Visit tcmovie.club](https://tcmovie.club)
+See what's playing at some of the Twin Cities' best local theaters, all in one
+place. Browse today's screenings or look ahead over the next two weeks, pick your
+favorite theaters, and follow a listing to the theater for tickets.
 
-## The theaters
+**[See what's playing → tcmovie.club](https://tcmovie.club)**
 
-The project follows:
+Built by a film enthusiast who loves deciding what to see on a random night.
+There are wonderful theaters around here. This makes it easier to enjoy them.
+
+## FAST by design
+
+Every page load serves a small, static HTML page with the screenings already in
+it. **No spinners. No tracking. No account needed.**
+
+The schedule is readable without JavaScript. A little JavaScript lets you filter
+by theater instantly, using the listings already on the page. Your selections
+stay in the URL, so you can share a day and a set of theaters with a friend.
+
+The site follows your system's light or dark appearance, with readable colors,
+clear selected states, and keyboard-friendly controls. No images or web fonts
+need to load before you can find a film.
+
+## Five fine theaters
 
 - [Trylon Cinema](https://www.trylon.org/)
 - [Heights Theater](https://www.heightstheater.com/)
@@ -14,63 +32,39 @@ The project follows:
 - [Riverview Theater](https://www.riverviewtheater.com/)
 - [The Main Cinema / MSP Film Society](https://mspfilm.org/)
 
-Schedules are organized by day, with times in **America/Chicago**. Members-only
-screenings stay visible and labeled. If a source gives an event start without a
-confirmed film time, the listing says so. Source timestamps help you judge how
-recent the information is; the theater's own page is the final place to check.
+Times are in **Central Time**. Members-only screenings and uncertain start times
+are labeled. Check the theater's own listing for the latest details and tickets.
 
-Use the theater buttons to show any combination of venues. Your selection stays
-in the URL and follows you between dates, so you can share a filtered schedule.
+## Keeping it current, keeping it considerate
 
-## Fast pages, a light touch
+The goal is **daily updates**. Refreshes are published manually for now, and each
+theater's last-checked time is visible on the site. If an update fails, the site
+keeps the last good schedule and shows when it may be stale.
 
-The site serves small, static HTML pages. A small inline script filters the
-listings already on the page; the full schedule is readable without JavaScript.
-The schedule loads no images or web fonts. Opening a page or changing a filter
-never triggers a request to a theater's website.
+Being a good web citizen is part of the project. Schedule collection happens
+separately from browsing, with small request limits, saved results, and time
+between requests. The collector checks access rules, backs off after failures,
+and pauses when a site refuses access. **Your page views never make requests to the theaters.**
 
-Collection happens separately, with small request budgets, pauses after failures,
-and checks of each source's access rules. The intended update schedule is 7 AM
-and 7 PM Chicago time, subject to each source's limits. The aim is to help people
-find and support these theaters while being considerate of their websites.
-
-## Where things stand
-
-This is an early project. The reproducible preview in this repository uses saved
-source data from **September 29, 2026**, covering September 29–October 12. It is a
-historical snapshot, not a promise of current ticket availability.
-
-The parsers, collector, and page generator are implemented and tested. Recurring
-collection and publishing are not configured by this repository. Trylon's live
-collection is available in the manual refresh workflow, with a 24-hour minimum
-interval and explicit coverage warnings.
-Landmark Lagoon and Emagine Willow Creek are possible additions, pending an
-approved way to use their schedules.
-
-The [source research](docs/source-research.md) records what was inspected, what
-worked, and what remains uncertain. Saved examples and tests make that work
-reproducible without repeatedly visiting the theaters' sites.
+The aim is to help people find and support these places while treating their
+websites with care. The [collection notes](docs/source-research.md) document
+development findings and where coverage still needs work.
 
 ## Help make it better
 
-Moviegoers and developers are welcome to contribute. Useful contributions include:
+Spot a missing film, a wrong time, or something that's hard to use?
+[Open an issue](https://github.com/sbone/tcmovie.club/issues). For a schedule
+correction, include the date and a link to the theater's listing.
 
-- **Corrections:** a wrong time, missing screening, or misleading label. Include
-  the date and a link to the theater's listing so we can check it.
-- **Usability:** clearer wording, better keyboard access, or a smoother experience
-  on a small screen.
-- **Sources:** an official calendar feed, an approved data source, or a theater
-  we should consider. Please review access rules before collecting new data.
-- **Code:** small fixes and parser improvements, with a saved example that
-  demonstrates the problem.
+Ideas, accessibility feedback, official calendar feeds, and small pull requests
+are welcome. You don't need to write code to help.
 
-[Open an issue](https://github.com/sbone/tcmovie.club/issues) to report something
-or discuss an idea. Small pull requests are welcome too. You don't need to write
-code to help.
+<details>
+<summary><strong>For the curious: run it locally and look under the hood</strong></summary>
 
 ## Run it locally
 
-With Node.js 22, npm, and Python 3 installed, run these commands from a checkout:
+With Node.js 22.9+, npm, and Python 3 installed, run these commands from a checkout:
 
 ```sh
 npm ci
@@ -79,31 +73,24 @@ npm run generate
 python3 -m http.server 8000 --bind 127.0.0.1 --directory site
 ```
 
-Open <http://127.0.0.1:8000>. Tests and page generation use saved inputs and make
-**no requests to theater websites**. Generated files go into `site/` and stay out
-of Git. The default preview begins September 29, 2026.
+Open <http://127.0.0.1:8000>. This offline preview uses saved inputs beginning
+**September 29, 2026**. Tests and generation make no requests to theater websites.
+Generated files stay out of Git.
 
-## How it works
+TypeScript parsers turn theater calendars and pages into validated screenings.
+The site generator writes the HTML pages ahead of time. Saved examples support
+parser improvements without repeated visits to the source sites.
 
-TypeScript parsers turn each theater's calendar or page into validated screening
-records. The generator combines those records and writes ordinary HTML date
-pages. If an update fails, the last good schedule is kept and its age remains
-visible. Unknown times and ticket availability stay unknown.
+- [Development guide](docs/development.md): local setup, collection, and publishing.
+- [Manual refresh](docs/development.md#manual-refresh-preview-and-deployment):
+  check, collect, preview, and choose whether to deploy.
+- [Source adapters](src/sources/README.md), [screening types](src/domain.ts),
+  [page renderer](src/site.ts), and [tests](test/).
 
-For a look under the hood, start with the [source adapters](src/sources/README.md),
-[screening types](src/domain.ts), [page renderer](src/site.ts), or [tests](test/).
-For a code change, add a saved example when relevant and run `npm run check`.
-The [development guide](docs/development.md) has the storage, validation, and
-coverage details; the [original project brief](twin-cities-movie-screenings-codex-handoff.md)
-contains the broader ideas behind the project.
+For code changes, add a saved example when relevant and run `npm run check`.
 
-## Collector
+</details>
 
-For a hands-on update, `npm run refresh` checks the app, refreshes eligible sources,
-opens a local preview, and asks before deploying to Cloudflare. Trylon is included when eligible, with
-clearly labeled saved data as a fallback until its first successful live capture. See the [manual refresh guide](docs/development.md#manual-refresh-preview-and-deployment).
+---
 
-Live collection is a separate command from the offline preview. The
-[collector setup guide](docs/development.md#collector) covers the project identity,
-request limits, source restrictions, and scheduling. It is intended to run once
-on the collection host, with visitors receiving the resulting static pages.
+A [Quality Time](https://qualityti.me) Effort.
