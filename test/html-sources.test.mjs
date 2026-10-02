@@ -44,6 +44,16 @@ test("Heights skips series cards and does not invent a format when a showtime om
   assert.ok(damaged.value.diagnostics.some(item => item.kind === "invalid"));
 });
 
+test("Heights excludes explicit Buy Pass rows while retaining film showtimes", () => {
+  const pass = '<div class="featured"><a class="featured-img-link" href="/films-and-events/heights-centennial-pass"></a><div class="featured-title"><h2>Heights Centennial Pass</h2></div><div class="showtime"><span class="showtime-date">Series</span>Pass<p class="format-and-tix-link"><a href="/order/add-tickets/615/nojs">Buy Pass</a></p></div></div>';
+  const result = parseHeights(heights + pass);
+  assert.equal(result.kind, "ok");
+  assert.deepEqual(result.value.screenings, parseHeights(heights).value.screenings);
+  assert.ok(result.value.diagnostics.some(note => note.kind === "excluded" && note.message.includes("Series pass")));
+  assert.equal(result.value.diagnostics.filter(note => note.kind === "invalid").length, 0);
+  assert.ok(parseHeights(heights + pass.replace("Buy Pass", "Buy Tickets")).value.diagnostics.some(note => note.kind === "invalid"));
+});
+
 test("Parkway retains uncertain event times without detail pages and excludes passes", () => {
   const { value } = parseParkway(parkway);
   const poltergeist = value.screenings.find(item => item.sourceEventId === "/all-events/poltergeist-26");

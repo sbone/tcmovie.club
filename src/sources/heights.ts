@@ -26,6 +26,10 @@ export function parseHeights(raw: string): Result<ParsedSource, string> {
     shows.each((_, row) => {
       const show = $(row);
       let record = `${path}:${index}`;
+      if (show.find('.format-and-tix-link a').toArray().some(link => /^buy pass$/i.test($(link).text().trim()))) {
+        diagnostics.push({ kind: "excluded", record, message: "Series pass, not an individual screening" });
+        return;
+      }
       try {
         const local = show.find("time[datetime]").first().attr("datetime");
         if (!local) throw new Error("Missing time");
