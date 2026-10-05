@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>club.tcmovie.refresh</string>
+  <key>WorkingDirectory</key><string>/Users/sbone/Code/tcmovie.club</string>
+  <key>ProgramArguments</key><array>
+    <string>/Users/sbone/.asdf/installs/nodejs/24.21.0/bin/node</string>
+    <string>/Users/sbone/.asdf/installs/nodejs/24.21.0/lib/node_modules/npm/bin/npm-cli.js</string>
+    <string>run</string><string>refresh:auto</string>
+  </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>PATH</key><string>/Users/sbone/.asdf/installs/nodejs/24.21.0/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>StartCalendarInterval</key><dict>
+    <key>Hour</key><integer>0</integer><key>Minute</key><integer>30</integer>
+  </dict>
+  <key>StandardOutPath</key><string>/Users/sbone/Code/tcmovie.club/.state/scheduled-refresh.log</string>
+  <key>StandardErrorPath</key><string>/Users/sbone/Code/tcmovie.club/.state/scheduled-refresh-errors.log</string>
+</dict></plist>

@@ -12,6 +12,7 @@ import { errorMessage } from "./parse.js";
 import { venueNames } from "./site.js";
 import { acceptSource, emptySource } from "./store.js";
 import { chicagoDate, datesFrom } from "./time.js";
+import { runAutomatic } from "./automation.js";
 
 function command(program: string, args: string[]): Promise<void> {
   return new Promise((done, reject) => {
@@ -33,7 +34,10 @@ export async function commitTrackedChanges(directory: string) {
 
 async function refresh() {
   const args = process.argv.slice(2);
-  if (args.some(arg => arg !== "--commit")) throw new Error("Usage: npm run refresh [-- --commit]");
+  if (args.some(arg => !["--commit", "--auto", "--no-deploy"].includes(arg))
+    || (args.includes("--commit") && args.includes("--auto"))
+    || (args.includes("--no-deploy") && !args.includes("--auto"))) throw new Error("Usage: npm run refresh [-- --commit | --auto [--no-deploy]]");
+  if (args.includes("--auto")) { await runAutomatic(!args.includes("--no-deploy")); return; }
   if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error("Run npm run refresh in an interactive terminal; deployment requires an explicit yes.");
   await command("python3", ["--version"]);
   const capture = await loadCapturedSource("trylon", resolve("test/fixtures"));
@@ -56,6 +60,7 @@ async function refresh() {
     for (const note of source.diagnostics ?? []) if (note.kind !== "excluded") console.log(`  ${note.kind}: ${note.record}: ${note.message}`);
   }
   console.log(`\nPreview files: ${output}`);
+  console.log(`Requests this run: ${result.requests.map(source => `${source.sourceId} ${source.count}`).join(", ")} (${result.requests.reduce((total, source) => total + source.count, 0)} total; includes robots and revalidation).`);
   if (args.includes("--commit")) await commitTrackedChanges(process.cwd());
   let server: ChildProcess | undefined;
   const stop = () => { server?.kill(); };

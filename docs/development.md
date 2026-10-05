@@ -61,6 +61,92 @@ completion or Ctrl-C; collected state and preview files remain for inspection.
 This does not schedule updates or run the offline generator after collection.
 `npm run generate` still builds the separate historical fixture preview in `site/`.
 
+### Unattended daily refresh
+
+```sh
+npm run refresh:auto
+```
+
+This runs the offline test suite, collects eligible sources (including Trylon in
+manual mode), validates the 14 generated date pages and sharing PNGs, deploys to
+`tcmovieclub` on `main`, and compares the production homepage, source timestamps,
+and listings with the generated files. It needs no terminal, Python preview, or
+LLM on successful runs. Use `npm run refresh:auto -- --no-deploy` to collect,
+validate, and save a report without publishing; this still makes eligible theater
+requests. The interactive `npm run refresh` retains its `0.0.0.0` HTTP preview.
+
+Every run has its own `.state/runs/refresh-*/` directory containing `site/` and
+`report.json`. Only `site/` is uploaded. Reports include each theater's request
+count and requested URLs, freshness, diagnostics, smoke-test results, deployment,
+and production verification status. Counts include robots checks, redirects,
+conditional revalidation, and failed requests. Old reports remain for inspection;
+periodically archive/remove old run directories rather than live state.
+
+Last-good schedules remain usable when a source fails, with visible freshness
+and error labels; other theaters can still publish. A missing saved theater,
+empty schedule, broken page/image, corrupt state, test failure, or overlapping
+automatic run prevents publication. A source failure returns exit status 1 even
+when the fallback site deployed; inspect `report.json` to distinguish this from a
+deployment failure. Verification failure after deployment is reported separately
+and does not automatically roll back. Request budgets, access pauses, and backoff
+are unchanged. Trylon's 24-hour rule can skip a run after a delayed request or DST
+transition; timestamps are never advanced simply because the job ran.
+
+New parse, validation, or schedule-anomaly failures also save `review.json` with
+the last-good state and the public responses requested in that attempt. Existing
+coverage warnings, skipped sources, and network/access failures do not trigger
+LLM review. Inspect that bundle manually, or opt in by adding this to `.env.local`:
+
+```sh
+TC_REVIEW_COMMAND=/Users/sbone/Code/tcmovie.club/scripts/review-listings.sh
+```
+
+The included executable uses authenticated `codex exec` in read-only mode to
+propose a fix and regression test. It ignores user config/rules and requests no
+theater fetches, edits, external app actions, or deployment. See the official
+[Codex non-interactive documentation](https://developers.openai.com/codex/noninteractive/).
+Advice is saved in `review-advice.txt`; it is never parsed as screening data or
+automatically applied. The hook has a 60-second timeout and a bounded output size;
+failure is recorded without blocking an otherwise valid fallback deployment.
+Identical error messages and saved response bodies reuse cached advice rather
+than querying the model again. Review caches live in `.state/live/reviews/`.
+Leave the setting absent for zero LLM calls. A different executable can be used:
+it receives one absolute bundle filename and writes advice to stdout/stderr.
+No LLM credentials or full environment are included in the bundle.
+
+### Scheduling on this Mac at 12:30 AM
+
+[The launchd template](../deploy/club.tcmovie.refresh.plist) is configured for
+this checkout and Node 24.21.0. Review its paths before installing on another
+machine or upgrading Node. The time is the Mac's local timezone: set it to
+**America/Chicago** for 12:30 AM Central. The logged-in Mac must be available;
+launchd can coalesce missed runs after sleep rather than refreshing at midnight.
+Use one deployment computer and preserve `.state/live` there.
+
+First install dependencies with `npm ci`, authenticate Wrangler, and ensure
+`npm run check` passes. Then install the reviewed template:
+
+```sh
+mkdir -p .state "$HOME/Library/LaunchAgents"
+cp deploy/club.tcmovie.refresh.plist "$HOME/Library/LaunchAgents/club.tcmovie.refresh.plist"
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/club.tcmovie.refresh.plist"
+```
+
+Logs go to `.state/scheduled-refresh.log` and
+`.state/scheduled-refresh-errors.log`. The template does not run immediately or
+retry automatically on failure. To disable it:
+
+```sh
+launchctl bootout "gui/$(id -u)" "$HOME/Library/LaunchAgents/club.tcmovie.refresh.plist"
+```
+
+Automatic refreshes hold `.state/live/auto.lock` through deployment, in addition
+to the collection lock. After a crash, remove either lock only after confirming
+its process is no longer running. Avoid manual publication while the scheduled
+job is active. Nothing installs/enables this schedule merely by checking out the
+repository. No messaging/notification integration is configured; errors are in
+the reports, logs, and exit status.
+
 ### Movie ratings experiment (paused)
 
 Ratings, their checkbox, and IMDb links are currently omitted from generated pages.

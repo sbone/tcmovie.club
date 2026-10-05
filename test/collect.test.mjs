@@ -57,6 +57,8 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     const fake = fakeClock();
     const first = await collect(options, fake.clock);
     assert.equal(first.failed, false);
+    assert.equal(first.requests.reduce((sum, source) => sum + source.count, 0), fake.calls.length);
+    assert.ok(first.requests.every(source => !source.review));
     const trylon = await readSource(storage, "trylon");
     assert.equal(trylon.state.snapshot.screenings.length, 193);
     assert.ok(trylon.state.snapshot.screenings.every(show => !show.id.includes("reviewed")));
@@ -73,7 +75,8 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
       calls.slice(1).forEach((call, i) => assert.ok(call.at - calls[i].at >= 10_000));
     }
     const count = fake.calls.length;
-    await collect(options, fake.clock);
+    const repeat = await collect(options, fake.clock);
+    assert.ok(repeat.requests.every(source => source.count === 0 && !source.review));
     assert.equal(fake.calls.length, count, "same window must make no requests");
     fake.setTime(Date.parse("2026-09-30T00:00:00Z")); // 7 PM Chicago
     const second = await collect(options, fake.clock);
@@ -92,7 +95,9 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     const oldFetch = fake.clock.fetch;
     fake.clock.fetch = async (url, init) => url.startsWith("https://www.heightstheater.com") ? new Response("Unavailable", { status: 503, headers: { "Retry-After": "172800" } }) : oldFetch(url, init);
     fake.setTime(morning + dayMs + 60_000);
-    assert.equal((await collect(options, fake.clock)).failed, true);
+    const networkFailure = await collect(options, fake.clock);
+    assert.equal(networkFailure.failed, true);
+    assert.equal(networkFailure.requests.find(source => source.sourceId === "heights").review, false);
     const failed = await readSource(storage, "heights");
     assert.equal(failed.state.kind, "failed");
     assert.deepEqual(failed.state.lastGood, updated.state.snapshot);
@@ -107,6 +112,15 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     fake.setTime(morning + dayMs + 12 * 3_600_000);
     await collect(options, fake.clock);
     assert.equal(forbidden, 0, "Retry-After survives process runs");
+    fake.setTime(morning + 4 * dayMs);
+    fake.clock.fetch = async (url, init) => url === "https://www.heightstheater.com/"
+      ? new Response("<html>New layout</html>", { headers: { "Content-Type": "text/html", Date: new Date(fake.clock.now()).toUTCString() } })
+      : oldFetch(url, init);
+    const parserFailure = await collect(options, fake.clock);
+    const review = parserFailure.requests.find(source => source.sourceId === "heights");
+    assert.equal(review.review, true, "new parser failures are eligible for LLM review");
+    assert.ok(review.count > 0);
+    assert.deepEqual((await readSource(storage, "heights")).state.lastGood, updated.state.snapshot);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 

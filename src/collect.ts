@@ -29,6 +29,7 @@ export async function collect(options: { contact: string; storage: string; outpu
     const outcomes = await Promise.allSettled(sourceIdSchema.options.map(async sourceId => {
       const previous = await readSource(options.storage, sourceId);
       const state = await readHttp(httpDirectory, sourceId);
+      const requestedUrls: string[] = [];
       const save = () => saveHttp(httpDirectory, sourceId, state);
       let next = previous;
       let note = "";
@@ -44,7 +45,10 @@ export async function collect(options: { contact: string; storage: string; outpu
         state.slot = slot;
         await save();
         try {
-          const http = createHttp(sourceId, agent, state, save, clock);
+          const http = createHttp(sourceId, agent, state, save, { ...clock, fetch: (input, init) => {
+            requestedUrls.push(String(input));
+            return clock.fetch(input, init);
+          } });
           const capture = await collectSource(sourceId, http, firstDate);
           next = acceptSource(previous, sourceId, capture.result, capture.responseAt);
           if (next.state.kind === "failed") throw new Error(next.state.error.message);
@@ -56,7 +60,7 @@ export async function collect(options: { contact: string; storage: string; outpu
           state.nextAttemptAt = Math.max(clock.now() + Math.min(7 * dayMs, 12 * 3_600_000 * 2 ** Math.min(state.failures - 1, 4)),
             error instanceof CollectionError ? error.retryAt : 0);
           if (error instanceof CollectionError && error.kind === "access") state.paused = error.message;
-          next = failed(previous, { kind: error instanceof CollectionError ? error.kind : "parse",
+          next = failed(previous, { kind: error instanceof CollectionError ? error.kind : next !== previous && next.state.kind === "failed" ? next.state.error.kind : "parse",
             message: errorMessage(error), at: instantSchema.parse(new Date(clock.now()).toISOString()) });
         }
         await save();
@@ -76,7 +80,9 @@ export async function collect(options: { contact: string; storage: string; outpu
         stale, incomplete: warnings.length > 0, diagnostics,
         error: next.state.kind === "failed" ? next.state.error.message : state.paused,
         note: `${note}${warnings.length ? " Some dates or screening details remain unconfirmed; check the venue for its full schedule." : ""}`.trim() };
-      return { info, screenings: snapshot?.screenings ?? [], failed: next.state.kind === "failed" || !!state.paused };
+      return { info, screenings: snapshot?.screenings ?? [], failed: next.state.kind === "failed" || !!state.paused,
+        requests: requestedUrls.length, requestedUrls,
+        review: requestedUrls.length > 0 && next.state.kind === "failed" && ["parse", "validation", "anomaly"].includes(next.state.error.kind) };
     }));
     const collected = outcomes.map(result => {
       if (result.status === "rejected") throw result.reason;
@@ -86,7 +92,8 @@ export async function collect(options: { contact: string; storage: string; outpu
     const screenings = dedupe(collected.flatMap(source => source.screenings));
     const dates = datesFrom(firstDate, 14);
     await writeSite(options.output, dates, screenings, sources);
-    return { sources, screenings: screenings.length, failed: collected.some(source => source.failed) };
+    return { sources, screenings: screenings.length, failed: collected.some(source => source.failed),
+      requests: collected.map(source => ({ sourceId: source.info.sourceId, count: source.requests, urls: source.requestedUrls, review: source.review })) };
   } finally { await rmdir(lock); }
 }
 

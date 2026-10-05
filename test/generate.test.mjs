@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
 import { test } from "node:test";
 import { load } from "cheerio";
+import { smokeSite } from "../dist/automation.js";
 
 test("offline build combines five sources and retains a venue when its next import breaks", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-generate-"));
@@ -17,6 +18,7 @@ test("offline build combines five sources and retains a venue when its next impo
     await cp("test/fixtures", captures, { recursive: true });
     const success = run();
     assert.equal(success.status, 0, success.stderr);
+    assert.equal((await smokeSite(output, "2026-09-29")).pages, 14);
     const html = await readFile(join(output, "index.html"), "utf8");
     const $ = load(html);
     // The reviewed film page supplements the feed's missing Sep 29 Trylon screenings.
@@ -61,5 +63,15 @@ test("offline build combines five sources and retains a venue when its next impo
     assert.ok(fallback("main").text().includes("Winter Hymns"));
     assert.ok(fallback("footer").text().includes("Import failed"));
     assert.equal(JSON.parse(await readFile(join(state, "parkway.json"), "utf8")).state.kind, "ready");
+    assert.equal((await smokeSite(output, "2026-09-29")).pages, 14, "last-good fallback still permits publication");
+    const sourceFile = join(output, "sources.json");
+    const summaries = JSON.parse(await readFile(sourceFile, "utf8"));
+    summaries[0].checkedAt = null;
+    await writeFile(sourceFile, JSON.stringify(summaries));
+    await assert.rejects(smokeSite(output, "2026-09-29"), /no saved schedule/);
+    summaries[0].checkedAt = "2026-09-29T11:16:22Z";
+    await writeFile(sourceFile, JSON.stringify(summaries));
+    await writeFile(join(output, "2026-09-30/index.html"), "<html>Broken page</html>");
+    await assert.rejects(smokeSite(output, "2026-09-29"), /Screenings on/);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });

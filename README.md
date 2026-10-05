@@ -86,6 +86,8 @@ parser improvements without repeated visits to the source sites.
 - [Development guide](docs/development.md): local setup, collection, and publishing.
 - [Manual refresh](docs/development.md#manual-refresh-preview-and-deployment):
   check, collect, preview, and choose whether to deploy.
+- [Daily automation](docs/development.md#unattended-daily-refresh): unattended
+  validation/deployment, request reports, and opt-in LLM review of unexpected listings.
 - [Source adapters](src/sources/README.md), [screening types](src/domain.ts),
   [page renderer](src/site.ts), and [tests](test/).
 
