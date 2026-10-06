@@ -4,9 +4,29 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
-import { queryReview, runAutomatic } from "../dist/automation.js";
+import { queryReview, runAutomatic, verifyProduction } from "../dist/automation.js";
 import { Temporal } from "@js-temporal/polyfill";
 import { runtime } from "../dist/http.js";
+
+test("production verification tolerates propagation but still rejects persistent mismatches", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tc-verify-"));
+  try {
+    for (const file of ["index.html", "screenings.json", "sources.json"]) await writeFile(join(directory, file), "new deployment");
+    const urls = [], waits = [];
+    await verifyProduction(directory, "run", async url => {
+      urls.push(url);
+      return new Response(urls.length === 1 ? "previous deployment" : "new deployment");
+    }, async ms => { waits.push(ms); });
+    assert.equal(urls.length, 4);
+    assert.deepEqual(waits, [5000]);
+    assert.notEqual(urls[0], urls[1]);
+    let calls = 0;
+    await assert.rejects(verifyProduction(directory, "run", async () => {
+      calls++; return new Response("wrong deployment");
+    }, async () => {}), /Production mismatch: \//);
+    assert.equal(calls, 6);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 test("review command receives a bundle path and produces advice without interpreting it as listings", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-review-"));

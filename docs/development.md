@@ -88,7 +88,10 @@ empty schedule, broken page/image, corrupt state, test failure, or overlapping
 automatic run prevents publication. A source failure returns exit status 1 even
 when the fallback site deployed; inspect `report.json` to distinguish this from a
 deployment failure. Verification failure after deployment is reported separately
-and does not automatically roll back. Request budgets, access pauses, and backoff
+and does not automatically roll back. Verification retries up to six times with
+five-second gaps and a distinct cache-busting URL; it never recollects or redeploys
+while waiting for production to propagate. Persistent mismatches produce a concise
+error rather than dumping the entire page. Request budgets, access pauses, and backoff
 are unchanged. Trylon's 24-hour rule can skip a run after a delayed request or DST
 transition; timestamps are never advanced simply because the job ran.
 
@@ -119,8 +122,13 @@ No LLM credentials or full environment are included in the bundle.
 [The launchd template](../deploy/club.tcmovie.refresh.plist) is configured for
 this checkout and Node 24.21.0. Review its paths before installing on another
 machine or upgrading Node. The time is the Mac's local timezone: set it to
-**America/Chicago** for 12:30 AM Central. The logged-in Mac must be available;
-launchd can coalesce missed runs after sleep rather than refreshing at midnight.
+**America/Chicago** for 12:30 AM Central.
+
+This is one scheduled run daily; a second manual collection remains allowed by
+the existing two-window policy (six requests per run, twelve per theater per
+Chicago date). Trylon remains limited to one cycle per 24 elapsed hours.
+The logged-in Mac must be available; launchd can coalesce missed runs after sleep
+rather than refreshing at midnight.
 Use one deployment computer and preserve `.state/live` there.
 
 First install dependencies with `npm ci`, authenticate Wrangler, and ensure
