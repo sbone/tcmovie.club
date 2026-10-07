@@ -34,7 +34,7 @@ HTTP caches, and source state stay outside Git. A commit failure stops the workf
 The commit is retained even if you decline deployment; this command does not push.
 Deployment still requires an explicit `y` or `yes` after the local preview.
 
-The manual workflow includes Trylon whenever at least 24 hours have passed since
+The manual workflow includes Trylon whenever at least 12 hours have passed since
 its last request; it can run at any time of day. All sources still honor robots,
 access pauses, request budgets, conditional requests, and backoff. Re-running
 within the wait period rebuilds from saved data without another Trylon request.
@@ -92,7 +92,7 @@ and does not automatically roll back. Verification retries up to six times with
 five-second gaps and a distinct cache-busting URL; it never recollects or redeploys
 while waiting for production to propagate. Persistent mismatches produce a concise
 error rather than dumping the entire page. Request budgets, access pauses, and backoff
-are unchanged. Trylon's 24-hour rule can skip a run after a delayed request or DST
+are unchanged. Trylon's 12-hour rule can skip a run after a delayed request or DST
 transition; timestamps are never advanced simply because the job ran.
 
 New parse, validation, or schedule-anomaly failures also save `review.json` with
@@ -126,7 +126,7 @@ machine or upgrading Node. The time is the Mac's local timezone: set it to
 
 This is one scheduled run daily; a second manual collection remains allowed by
 the existing two-window policy (six requests per run, twelve per theater per
-Chicago date). Trylon remains limited to one cycle per 24 elapsed hours.
+Chicago date). Trylon remains limited to one cycle per 12 elapsed hours.
 The logged-in Mac must be available; launchd can coalesce missed runs after sleep
 rather than refreshing at midnight.
 Use one deployment computer and preserve `.state/live` there.
@@ -185,7 +185,7 @@ Optional positional arguments are state and output directories; defaults are
 `.state/live` and `site`. Keep live state separate from `.state/demo`.
 
 The standalone collector keeps Trylon disabled by default.
-`TC_ENABLE_TRYLON=1` enables its calendar adapter in morning-only mode. It runs only from 7 AM to noon Chicago time and at least 24 hours after
+`TC_ENABLE_TRYLON=1` enables its calendar adapter in morning-only mode. It runs only from 7 AM to noon Chicago time and at least 12 hours after
 the source's last request. This can skip a morning after a delayed run or spring
 DST change. It never imports `reviewed.json` or search-indexed supplements.
 
@@ -343,8 +343,8 @@ The intended collection schedule is one server job at **7 AM and 7 PM America/Ch
 collects within each source's request budget, retains good data on failure, and
 publishes static HTML/JSON with source timestamps. Every visitor request serves
 published files; there is no manual refresh or visitor-triggered collection.
-Trylon is eligible at the morning run only, with at least 24 hours between requests
-as its feed specifies. More restrictive source rules always take precedence.
+Trylon is eligible at the morning run only, with at least 12 hours between requests
+as authorized on October 6; the feed advertises a 24-hour refresh interval. More restrictive source rules always take precedence.
 
 Before enabling the job, configure the fetcher identity and validate source coverage
 and access. The collector is implemented and tested offline; live acquisition and

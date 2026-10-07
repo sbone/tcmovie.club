@@ -342,3 +342,12 @@ access or completeness. The manual refresh can now attempt Trylon after its
 24-hour wait at any hour; the separate scheduled collector retains its morning
 window. A 401/403 still pauses access. Until a live snapshot succeeds, manual
 previews retain the labeled saved fallback without copying it into live state.
+
+## Trylon interval update — October 6, 2026
+
+The user authorized reducing the minimum interval to 12 elapsed hours, including
+a manual refresh followed about 13 hours later by the 12:30 AM scheduled run.
+This supersedes the 24-hour polling policy described above. The feed metadata
+remains unchanged. The scheduled refresh still runs once daily; request windows,
+budgets, robots checks, access pauses, conditional requests, and backoff remain
+in force. No theater requests were made to change this policy.

@@ -12,7 +12,7 @@ import { acceptSource, failed, lastGood, readSource, writeSource } from "./store
 import type { StoredSource } from "./store.js";
 import { writeSite } from "./site.js";
 import type { SourceInfo } from "./site.js";
-import { datesFrom } from "./time.js";
+import { datesFrom, scheduleDays } from "./time.js";
 
 export async function collect(options: { contact: string; storage: string; output: string; trylon?: "disabled" | "manual" | "morning-only"; savedTrylon?: StoredSource }, clock: Runtime = runtime) {
   const agent = userAgent(options.contact);
@@ -20,6 +20,8 @@ export async function collect(options: { contact: string; storage: string; outpu
   const started = clock.now();
   const local = Temporal.Instant.fromEpochMilliseconds(started).toZonedDateTimeISO(timeZone);
   const firstDate = local.toPlainDate().toString();
+  const dates = datesFrom(firstDate, scheduleDays);
+  const window = { firstDate, lastDate: dates.at(-1)! };
   const slot = `${local.hour < 7 ? local.subtract({ days: 1 }).toPlainDate() : firstDate}:${local.hour >= 7 && local.hour < 19 ? "am" : "pm"}`;
   const httpDirectory = join(options.storage, "http");
   await mkdir(options.storage, { recursive: true });
@@ -37,8 +39,8 @@ export async function collect(options: { contact: string; storage: string; outpu
       else if (state.paused) note = "Updates paused while source access is reviewed.";
       else if (started < state.nextAttemptAt) note = "Waiting before the next update attempt.";
       else if (state.slot === slot) note = "Showing the latest saved schedule.";
-      else if (sourceId === "trylon" && started - state.lastRequestAt < dayMs) {
-        note = "Waiting at least 24 hours between Trylon requests.";
+      else if (sourceId === "trylon" && started - state.lastRequestAt < dayMs / 2) {
+        note = "Waiting at least 12 hours between Trylon requests.";
       } else if (sourceId === "trylon" && options.trylon === "morning-only" && (local.hour < 7 || local.hour >= 12)) {
         note = "Trylon is checked in the morning.";
       } else {
@@ -50,7 +52,7 @@ export async function collect(options: { contact: string; storage: string; outpu
             return clock.fetch(input, init);
           } });
           const capture = await collectSource(sourceId, http, firstDate);
-          next = acceptSource(previous, sourceId, capture.result, capture.responseAt);
+          next = acceptSource(previous, sourceId, capture.result, capture.responseAt, window);
           if (next.state.kind === "failed") throw new Error(next.state.error.message);
           state.failures = 0; state.nextAttemptAt = 0;
           // Keep only a bounded cache; only rediscovered pages enter the next parse.
@@ -90,7 +92,6 @@ export async function collect(options: { contact: string; storage: string; outpu
     });
     const sources = collected.map(source => source.info);
     const screenings = dedupe(collected.flatMap(source => source.screenings));
-    const dates = datesFrom(firstDate, 14);
     await writeSite(options.output, dates, screenings, sources);
     return { sources, screenings: screenings.length, failed: collected.some(source => source.failed),
       requests: collected.map(source => ({ sourceId: source.info.sourceId, count: source.requests, urls: source.requestedUrls, review: source.review })) };
@@ -107,7 +108,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       if (source.error) console.error(`${source.sourceId}: ${source.error}`);
       for (const note of source.diagnostics ?? []) console.log(`  ${note.kind}: ${note.record}: ${note.message}`);
     }
-    console.log(`Published 14 date pages with ${result.screenings} screenings. No AI parsing.`);
+    console.log(`Published ${scheduleDays} date pages with ${result.screenings} screenings. No AI parsing.`);
     if (result.failed) process.exitCode = 1;
   } catch (error) { console.error(errorMessage(error)); process.exitCode = 1; }
 }

@@ -11,7 +11,7 @@ import { instantSchema, screeningSchema, sourceIdSchema } from "./domain.js";
 import { readHttp } from "./http.js";
 import { errorMessage } from "./parse.js";
 import { readSource, writeJson } from "./store.js";
-import { chicagoDate, datesFrom } from "./time.js";
+import { chicagoDate, datesFrom, scheduleDays } from "./time.js";
 
 const exec = promisify(execFile);
 
@@ -41,12 +41,12 @@ export async function smokeSite(output: string, firstDate: string) {
   const sources = JSON.parse(await readFile(join(output, "sources.json"), "utf8"));
   assert.deepEqual(sources.map((source: { sourceId: string }) => source.sourceId).sort(), [...sourceIdSchema.options].sort());
   for (const source of sources) assert.ok(instantSchema.safeParse(source.checkedAt).success, `${source.sourceId}: no saved schedule`);
-  const dates = datesFrom(firstDate, 14);
+  const dates = datesFrom(firstDate, scheduleDays);
   for (const [index, date] of dates.entries()) {
     const html = await readFile(join(output, date, "index.html"), "utf8");
     const $ = load(html);
     assert.match($("h1").text(), /Screenings on/);
-    assert.equal($("nav a").length, 14);
+    assert.equal($("nav a").length, dates.length);
     assert.equal($("button[data-theater][aria-pressed=true]").length, 5);
     assert.equal($(".screenings li").length, screenings.filter(show => chicagoDate(show.start.at) === date).length);
     assert.equal($("link[rel=canonical]").attr("href"), `https://tcmovie.club/${date}/`);
@@ -64,7 +64,7 @@ export async function smokeSite(output: string, firstDate: string) {
       assert.equal(home(".screenings li").length, $(".screenings li").length);
     }
   }
-  return { firstDate, lastDate: dates[13], pages: dates.length, screenings: screenings.length };
+  return { firstDate, lastDate: dates.at(-1), pages: dates.length, screenings: screenings.length };
 }
 
 export async function queryReview(command: string, bundle: string, destination: string) {

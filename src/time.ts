@@ -2,6 +2,14 @@ import { Temporal } from "@js-temporal/polyfill";
 import { instantSchema, timeZone } from "./domain.js";
 import type { Instant } from "./domain.js";
 
+export const scheduleDays = 14;
+export type DateWindow = Readonly<{ firstDate: string; lastDate: string }>;
+
+export function inDateWindow(date: string, window: DateWindow): boolean {
+  const day = Temporal.PlainDate.from(date, { overflow: "reject" }).toString();
+  return day >= window.firstDate && day <= window.lastDate;
+}
+
 export function chicagoTime(local: string): Instant {
   const time = Temporal.PlainDateTime.from(local, { overflow: "reject" });
   return instantSchema.parse(time.toZonedDateTime(timeZone, {

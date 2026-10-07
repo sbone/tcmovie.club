@@ -63,7 +63,7 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     assert.equal(trylon.state.snapshot.screenings.length, 193);
     assert.ok(trylon.state.snapshot.screenings.every(show => !show.id.includes("reviewed")));
     const heights = await readSource(storage, "heights");
-    assert.equal(heights.state.snapshot.screenings.length, 38);
+    assert.equal(heights.state.snapshot.screenings.length, 30, "homepage plus calendar listings in the 14-day window");
     assert.equal(heights.state.snapshot.screenings.find(show => show.id === "heights:570").format, "DCP");
     assert.equal((await readSource(storage, "main")).state.snapshot.screenings.length, 194);
     assert.ok(fake.calls.some(call => call.url.includes("start_date=2026-09-29&end_date=2026-10-13&_locale=user")));
@@ -152,7 +152,7 @@ test("manual Trylon fallback preserves provenance without fetching or seeding li
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test("manual Trylon runs outside morning hours, respects 24 hours, and retains an offline fallback on denial", async () => {
+test("manual Trylon runs outside morning hours, respects 12 hours, and retains an offline fallback on denial", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-manual-trylon-"));
   try {
     const storage = join(directory, "live"), httpDirectory = join(storage, "http");
@@ -168,9 +168,12 @@ test("manual Trylon runs outside morning hours, respects 24 hours, and retains a
     await collect(options, fake.clock);
     assert.equal(fake.calls.length, 2);
     assert.equal((await readSource(storage, "trylon")).state.snapshot.screenings.length, 193);
-    fake.setTime(Date.parse("2026-09-30T21:00:00Z"));
+    fake.setTime(Date.parse("2026-09-30T09:00:00Z"));
     await collect(options, fake.clock);
-    assert.equal(fake.calls.length, 2, "a manual run cannot bypass the 24-hour interval");
+    assert.equal(fake.calls.length, 2, "a manual run cannot bypass the 12-hour interval");
+    fake.setTime(Date.parse("2026-09-30T11:00:00Z")); // 13 hours after the first run
+    await collect(options, fake.clock);
+    assert.equal(fake.calls.length, 4, "after 13 hours the next date checks robots and revalidates the feed");
     // A first-ever failed live import must preserve saved display data without storing it as live data.
     await rm(join(storage, "trylon.json"));
     fake.setTime(Date.parse("2026-10-01T22:00:00Z"));
@@ -249,7 +252,7 @@ test("collector refuses overlapping runs and validates identity before any netwo
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test("access failures remain paused and Trylon's 24-hour guard survives the spring DST change", async () => {
+test("access failures remain paused and Trylon's 12-hour guard survives the spring DST change", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-policy-"));
   try {
     const httpDirectory = join(directory, "http");
@@ -259,9 +262,9 @@ test("access failures remain paused and Trylon's 24-hour guard survives the spri
     }
     const options = { contact: "test@example.com", storage: directory, output: join(directory, "site"), trylon: "morning-only" };
     const fake = fakeClock();
-    const lastRequestAt = Date.parse("2026-03-07T13:00:10Z"); // 7 AM CST
+    const lastRequestAt = Date.parse("2026-03-08T01:00:10Z"); // 7 PM CST
     await writeFile(join(httpDirectory, "trylon.json"), JSON.stringify({ lastRequestAt }));
-    fake.setTime(Date.parse("2026-03-08T12:00:00Z")); // 7 AM CDT, only 23 hours later
+    fake.setTime(Date.parse("2026-03-08T12:00:00Z")); // 7 AM CDT, only 11 hours later
     await collect(options, fake.clock);
     assert.equal(fake.calls.length, 0);
     fake.setTime(Date.parse("2026-03-09T12:01:00Z"));

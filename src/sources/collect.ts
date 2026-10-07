@@ -5,7 +5,7 @@ import { origins } from "../http.js";
 import type { createHttp, Page } from "../http.js";
 import { combineParsed } from "../parse.js";
 import type { Diagnostic, ParsedSource } from "../parse.js";
-import { chicagoDate, datesFrom, englishDate } from "../time.js";
+import { chicagoDate, datesFrom, englishDate, inDateWindow, scheduleDays } from "../time.js";
 import { parseHeights, parseHeightsCalendar } from "./heights.js";
 import { parseRiverview, parseRiverviewSpecials } from "./riverview.js";
 import { parseParkway } from "./parkway.js";
@@ -18,8 +18,9 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
   const pages: Page[] = [];
   const notes: Diagnostic[] = [];
   const results: Result<ParsedSource, string>[] = [];
-  const dates = datesFrom(firstDate, 14);
-  const lastDate = dates[13]!;
+  const dates = datesFrom(firstDate, scheduleDays);
+  const lastDate = dates.at(-1)!;
+  const window = { firstDate, lastDate };
   const warn = (message: string) => notes.push({ kind: "warning", record: "coverage", message });
   const get = async (path: string, kind: "html" | "calendar" | "json" = "html") => {
     const page = await http.request(path, kind); pages.push(page); return page.body;
@@ -54,7 +55,7 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
       const path = links(home, /^\/calendar\/?$/)[0];
       if (!path) throw new Error("Heights calendar link missing");
       const calendar = await get(path);
-      results.push(parseHeightsCalendar(calendar));
+      results.push(parseHeightsCalendar(calendar, window));
       const title = load(calendar)("title").text();
       const match = title.match(/^([A-Za-z]+) (\d{4}) \| Heights Theater$/);
       if (!match) throw new Error("Missing Heights calendar month");
@@ -66,7 +67,7 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
           return englishDate(`${name} 1, ${year}`).startsWith(month);
         });
         if (!next) throw new Error(`Heights calendar link missing for ${month}`);
-        results.push(parseHeightsCalendar(await get(next)));
+        results.push(parseHeightsCalendar(await get(next), window));
       }
       break;
     }
@@ -77,7 +78,7 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
       if (special) results.push(parseRiverviewSpecials(await get(special), home));
       else warn("Special Screenings link missing; specials were not checked.");
       const dated = links(home, /^\/base\/index\/\d{4}-\d{2}-\d{2}$/)
-        .filter(path => path.slice(-10) > firstDate && path.slice(-10) <= lastDate).sort();
+        .filter(path => path.slice(-10) !== firstDate && inDateWindow(path.slice(-10), window)).sort();
       const daily = await refresh(dated);
       for (const [path, html] of Object.entries(daily)) results.push(parseRiverview(html, {}, path.slice(-10)));
       warn(`Daily navigation extends through ${dated.at(-1)?.slice(-10) ?? firstDate}; dates without published listings are unverified.`);
@@ -88,14 +89,14 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
       const parsed = parseParkway(listing);
       if (parsed.kind === "err") throw new Error(parsed.error);
       const paths = [...new Set(parsed.value.screenings.filter(item => {
-        const date = chicagoDate(item.start.at); return date >= firstDate && date <= lastDate;
+        const date = chicagoDate(item.start.at); return inDateWindow(date, window);
       }).map(item => new URL(item.eventUrl).pathname))];
       const details = await refresh(paths);
       results.push(parseParkway(listing, details));
       break;
     }
     case "main": {
-      const query = new URLSearchParams({ start_date: firstDate, end_date: datesFrom(firstDate, 15)[14]!, _locale: "user" });
+      const query = new URLSearchParams({ start_date: firstDate, end_date: datesFrom(firstDate, scheduleDays + 1).at(-1)!, _locale: "user" });
       results.push(parseMain(await get(`/wp-json/gecko-theme/v1/calendar-events?${query}`, "json")));
       warn("Future dates without published showtimes remain unverified; events at other venues are excluded.");
       break;

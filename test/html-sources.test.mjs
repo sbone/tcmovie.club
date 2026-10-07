@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseHeights } from "../dist/sources/heights.js";
+import { parseHeights, parseHeightsCalendar } from "../dist/sources/heights.js";
 import { parseRiverview } from "../dist/sources/riverview.js";
 import { parseParkway } from "../dist/sources/parkway.js";
 import { screeningSchema } from "../dist/domain.js";
@@ -12,6 +12,23 @@ const riverview = read("riverview", "home.html");
 const parkway = read("parkway", "movies.html");
 const riverviewDetails = { "/show/show/3364": read("riverview", "film.html"), "/show/show/3410": read("riverview", "akira.html") };
 const parkwayDetails = { "/all-events/poltergeist-26": read("parkway", "film.html") };
+
+test("Heights calendar validates only showtimes within the inclusive refresh window", () => {
+  const card = (day, title, links) => `<div id="day${day}" class="calendar-cell"><div class="calendar-listing"><h3><a href="/films-and-events/${title}">${title}</a></h3><ul class="times">${links.map(link => `<li>${link}</li>`).join("")}</ul></div></div>`;
+  const film = id => `<a href="/order/add-tickets/${id}/nojs">7:30pm</a>`;
+  const external = ['6:30pm', '8:30pm'].map(time => `<a class="organ" href="https://everythingimmersive.com/events/houdini-100">${time}</a>`);
+  const raw = '<title>October 2026 | Heights Theater</title>' +
+    card(6, 'past', external) + card(7, 'first', [film(701)]) + card(20, 'last', [film(702)]) +
+    [29, 30, 31].map(day => card(day, 'houdini-100', external)).join('');
+  const window = { firstDate: '2026-10-07', lastDate: '2026-10-20' };
+  const result = parseHeightsCalendar(raw, window);
+  assert.equal(result.kind, 'ok');
+  assert.deepEqual(result.value.screenings.map(show => show.id), ['heights:701', 'heights:702']);
+  assert.deepEqual(result.value.diagnostics, []);
+  const damaged = parseHeightsCalendar(raw.replace(film(702), external[0]), window);
+  assert.ok(damaged.value.diagnostics.some(note => note.kind === 'invalid' && note.message.includes('Missing stable calendar showtime ID')));
+  assert.ok(parseHeightsCalendar(raw).value.diagnostics.some(note => note.kind === 'invalid'), 'unbounded fixture parsing still validates the full month');
+});
 
 for (const [source, parse, raw, details, count] of [
   ["heights", parseHeights, heights, {}, 18],
