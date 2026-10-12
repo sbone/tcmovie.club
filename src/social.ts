@@ -9,6 +9,8 @@ const venues = [
   { id: "parkway", name: "Parkway", color: "#91451f", tint: "#f0e7df", width: 200 },
   { id: "riverview", name: "Riverview", color: "#285f8f", tint: "#e5eaea", width: 220 },
   { id: "main", name: "Main", color: "#515d6b", tint: "#e9e9e6", width: 168 },
+  { id: "grandview", name: "Grandview", color: "#72552d", tint: "#eee8df", width: 220 },
+  { id: "highland", name: "Highland", color: "#365f59", tint: "#e5eeea", width: 200 },
 ] as const;
 const format = (date: string, year: boolean) => new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC", weekday: "long", month: "long", day: "numeric", ...(year ? { year: "numeric" } as const : {}),
@@ -21,8 +23,10 @@ export function socialCard(date: string, day: readonly Screening[]) {
   const names = new Intl.ListFormat("en-US").format(active.map(venue => venue.name));
   const description = `${listed.length ? `${listed.length} screening${listed.length === 1 ? "" : "s"} at ${names}` : "No screenings listed"}. See films on ${format(date, true)}. All times Central.`;
   let x = 72;
-  const badges = venues.map(venue => {
-    const badge = `<rect x="${x}" y="352" width="${venue.width}" height="64" rx="8" fill="${venue.tint}"/><text x="${x + venue.width / 2}" y="394" fill="${venue.color}">${venue.name}</text>`;
+  const badges = venues.map((venue, index) => {
+    if (index % 4 === 0) x = 72;
+    const y = 344 + Math.floor(index / 4) * 68;
+    const badge = `<rect x="${x}" y="${y}" width="${venue.width}" height="56" rx="8" fill="${venue.tint}"/><text x="${x + venue.width / 2}" y="${y + 38}" fill="${venue.color}">${venue.name}</text>`;
     x += venue.width + 32;
     return badge;
   }).join("");
