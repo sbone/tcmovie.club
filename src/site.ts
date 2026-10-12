@@ -112,6 +112,8 @@ body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem
 .venue-badge{display:inline-block;padding:.1em .45em;border-radius:.25rem;font-weight:600;color:var(--venue-color);background:var(--venue-tint)}
 [hidden]{display:none!important}#theater-filters{border:0;padding:0;margin:1.1rem 0 .5rem}#theater-filters legend{font-size:.9rem;font-weight:650;margin-bottom:.5rem}.theater-buttons{display:flex;flex-wrap:wrap;gap:.6rem}.theater-buttons button{font:inherit;font-size:.9rem;min-height:44px;padding:.4rem .7rem;border:1px solid var(--venue-color,var(--link));border-radius:.3rem;background:var(--paper);color:var(--venue-color,var(--link));cursor:pointer}.theater-buttons button[aria-pressed=true]{background:var(--venue-color);color:var(--on-venue)}.theater-buttons button[data-theater]::before{content:"";display:inline-block;width:1em}.theater-buttons button[aria-pressed=true]::before{content:"✓"}.theater-buttons button:disabled{border-color:var(--rule);cursor:default}#filter-status{min-height:1.5em;margin:.5rem 0}
 @media(hover:hover){a:hover{text-decoration-thickness:.14em}nav a:not([aria-current]):hover{background:var(--hover);text-decoration:underline}.theater-buttons button:not(:disabled):hover{background:var(--venue-tint,var(--hover))}.theater-buttons button[aria-pressed=true]:hover{background:var(--venue-color);box-shadow:inset 0 0 0 1px var(--on-venue)}}
+#theater-filters legend{box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem}#theater-filters [data-reset]{font:inherit;font-weight:400;color:var(--link);background:transparent;border:0;min-height:44px;padding:0 .4rem;text-decoration:underline;text-underline-offset:.2em;cursor:pointer}#theater-filters [data-reset]:disabled{opacity:.55;cursor:default;text-decoration:none}
+@media(max-width:480px){#theater-filters{margin-top:.6rem}.theater-buttons{gap:.35rem}.theater-buttons button{font-size:.8rem;padding:.3rem .45rem}.theater-buttons button[data-theater]::before{width:.85em}}
 .theater-buttons button:not(:disabled):active{box-shadow:inset 0 0 0 2px currentColor}
 h1{font-size:1.1rem;font-weight:650;margin:1rem 0 .2rem}.site-name a{display:inline-block;padding:.2rem 0;color:inherit;text-decoration:none}.site-name a:hover{text-decoration:underline}.schedule-notes{margin-top:1.25rem}
 footer hr{border:0;border-top:1px solid var(--rule);margin:1.5rem 0 .75rem}.footer-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem}.footer-links span{margin-left:auto;text-align:right}
@@ -138,9 +140,9 @@ html{background-image:none}
 <h1>Screenings on<span class="visually-hidden"> ${escape(label)}</span></h1>
 <nav aria-label="Dates">${links}</nav></header>
 <main>
-<fieldset id="theater-filters" hidden><legend>Theaters</legend><div class="theater-buttons">
+<fieldset id="theater-filters" hidden><legend><span>Theaters</span><button type="button" data-reset>Show all</button></legend><div class="theater-buttons">
 ${Object.entries(venueNames).map(([id, name]) => `<button type="button" data-theater="${id}" aria-pressed="true">${id === "main" ? "Main" : escape(name)}</button>`).join("\n")}
-<button type="button" data-reset>Show all</button></div></fieldset>
+</div></fieldset>
 <noscript><p>All theaters are shown. Enable JavaScript to filter by theater.</p></noscript>
 <p id="filter-status" role="status" aria-live="polite">${rows ? "" : "No screenings found in the saved data for this date."}</p>
 ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
