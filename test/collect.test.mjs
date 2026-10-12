@@ -28,7 +28,8 @@ const mannFor = (venue, day) => mann
   .replaceAll("Grandview 1 &amp; 2", venue === "highland" ? "Highland 1 &amp; 2" : "Grandview 1 &amp; 2")
   .replaceAll("grandview-1-2", venue === "highland" ? "highland-1-2" : "grandview-1-2")
   .replaceAll("/booking/83-", venue === "highland" ? "/booking/85-" : "/booking/83-")
-  .replaceAll("Wednesday, Oct 14", new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" }).format(new Date(`2026-09-${String(29 + day).padStart(2, "0")}T12:00:00Z`)));
+  .replaceAll("Wednesday, Oct 14", new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" }).format(new Date(Date.parse("2026-09-29T12:00:00Z") + day * 86_400_000)))
+  .replace(/\/booking\/(\d+)-(\d+)/g, (_all, theater, id) => `/booking/${theater}-${id}${day}`);
 
 function fakeClock() {
   let now = morning;
