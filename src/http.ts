@@ -11,7 +11,7 @@ import { errorMessage } from "./parse.js";
 export const origins = {
   trylon: "https://www.trylon.org", heights: "https://www.heightstheater.com",
   riverview: "https://www.riverviewtheater.com", parkway: "https://theparkwaytheater.com",
-  main: "https://mspfilm.org",
+  main: "https://mspfilm.org", grandview: "https://www.manntheatres.com", highland: "https://www.manntheatres.com",
 } as const;
 export const dayMs = 86_400_000;
 // The package exports a CJS function but declares an ESM default export.
@@ -62,12 +62,20 @@ function allowedPath(source: SourceId, url: URL): boolean {
       && /^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end)
       && days > 0 && days <= 32 && q.get("_locale") === "user";
   }
+  if (source === "grandview" || source === "highland") {
+    const params = url.searchParams;
+    const venue = source === "grandview" ? "grandview-1-2" : "highland-1-2";
+    const day = params.get("day");
+    return url.pathname === "/" && params.size === 2 && params.get("theatre") === venue
+      && day !== null && /^(?:[0-9]|1[0-3])$/.test(day);
+  }
   if (url.search) return false;
   switch (source) {
     case "trylon": return url.pathname === "/feed/my-calendar-google/";
     case "heights": return /^\/(?:calendar(?:\/[a-z]+\/\d{4})?\/?)?$/.test(url.pathname);
     case "riverview": return /^\/(?:specialscreening\/?|base\/index\/\d{4}-\d{2}-\d{2})?$/.test(url.pathname);
     case "parkway": return /^\/(?:movies\/?|all-events\/[^/]+\/?)$/.test(url.pathname);
+    case "grandview": case "highland": return false;
   }
 }
 
