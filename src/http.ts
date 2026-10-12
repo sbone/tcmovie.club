@@ -75,12 +75,11 @@ function allowedPath(source: SourceId, url: URL): boolean {
     case "heights": return /^\/(?:calendar(?:\/[a-z]+\/\d{4})?\/?)?$/.test(url.pathname);
     case "riverview": return /^\/(?:specialscreening\/?|base\/index\/\d{4}-\d{2}-\d{2})?$/.test(url.pathname);
     case "parkway": return /^\/(?:movies\/?|all-events\/[^/]+\/?)$/.test(url.pathname);
-    case "grandview": case "highland": return false;
   }
 }
 
 export function createHttp(source: SourceId, agent: string, state: HttpState,
-  save: () => Promise<void>, clock: Runtime = runtime) {
+  save: () => Promise<void>, clock: Runtime = runtime, hostRequests = new Map<string, number>()) {
   let count = 0;
   let robots: ReturnType<typeof robotsParser> | undefined;
   const origin = origins[source];
@@ -99,9 +98,11 @@ export function createHttp(source: SourceId, agent: string, state: HttpState,
     if (state.day !== today) { state.day = today; state.requestsToday = 0; }
     if (!remaining()) throw new CollectionError("Source request budget exhausted");
     const delay = Math.max(10_000, (robots?.getCrawlDelay(agent) ?? 0) * 1000);
-    const wait = state.lastRequestAt + delay - clock.now();
+    const requestAt = Math.max(state.lastRequestAt + delay, (hostRequests.get(origin) ?? 0) + delay, clock.now());
+    const wait = requestAt - clock.now();
     if (!Number.isFinite(delay)) throw new CollectionError("Invalid robots crawl delay", "access");
     if (wait > 60_000) throw new CollectionError("Waiting for source crawl delay", "network", state.lastRequestAt + delay);
+    hostRequests.set(origin, requestAt);
     if (wait > 0) await clock.sleep(wait);
     const previous = state.pages[url.href];
     const headers: Record<string, string> = { "User-Agent": agent, Accept: kind === "calendar" ? "text/calendar" : kind === "json" ? "application/json" : kind === "robots" ? "text/plain" : "text/html" };

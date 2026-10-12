@@ -34,3 +34,18 @@ test("Mann Highland uses same HTML contract and distinct IDs", () => {
   assert.equal(parsed.value.screenings.length, 4);
   assert.ok(parsed.value.screenings.every(s => s.venueId === "highland" && s.sourceId === "highland"));
 });
+
+test("real Highland captures validate Today, Tomorrow and dated showtimes", async () => {
+  for (const day of [0, 1, 2]) {
+    const html = await readFile(new URL(`./fixtures/mann/highland-day${day}.html`, import.meta.url), "utf8");
+    const date = `2026-10-${12 + day}`;
+    const parsed = parseMann(html, "highland", date);
+    assert.equal(parsed.kind, "ok");
+    assert.deepEqual(parsed.value.diagnostics, []);
+    assert.equal(parsed.value.screenings.length, 4);
+    assert.ok(parsed.value.screenings.every(s => s.id.startsWith("highland:85-") && s.venueId === "highland"));
+    assert.equal(parseMann(html, "grandview", date).kind, "err");
+    assert.equal(parseMann(html, "highland", "2026-10-20").kind, "err");
+    if (day < 2) assert.equal(parseMann(html.replace('aria-pressed="true"', 'aria-pressed="false"'), "highland", date).kind, "err");
+  }
+});

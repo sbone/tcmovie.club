@@ -83,9 +83,9 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     assert.ok(fake.calls.some(call => call.url.includes("start_date=2026-09-29&end_date=2026-10-13&_locale=user")));
     assert.ok(first.sources.find(source => source.sourceId === "parkway").diagnostics.some(note => note.message.includes("Request limit")));
     assert.ok(first.sources.find(source => source.sourceId === "riverview").diagnostics.some(note => note.record === "Canoe Dig It?"));
+    assert.ok(first.requests.every(source => source.count <= 6));
     for (const host of new Set(fake.calls.map(call => new URL(call.url).host))) {
       const calls = fake.calls.filter(call => new URL(call.url).host === host);
-      assert.ok(calls.length <= 6);
       calls.slice(1).forEach((call, i) => assert.ok(call.at - calls[i].at >= 10_000));
     }
     const count = fake.calls.length;

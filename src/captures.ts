@@ -10,10 +10,16 @@ import { parseHeights, parseHeightsCalendar } from "./sources/heights.js";
 import { parseRiverview, parseRiverviewSpecials } from "./sources/riverview.js";
 import { parseParkway } from "./sources/parkway.js";
 import { parseMain } from "./sources/main.js";
+import { parseMann } from "./sources/mann.js";
 
 const metadataSchema = z.object({ sourceUrl: httpUrlSchema, responseAt: instantSchema });
 
 export async function loadCapturedSource(sourceId: SourceId, directory: string) {
+  if (sourceId === "grandview" || sourceId === "highland") {
+    const file = join(directory, "mann", `${sourceId}-day2`);
+    const metadata = metadataSchema.extend({ date: z.iso.date() }).parse(JSON.parse(await readFile(`${file}.metadata.json`, "utf8")));
+    return { responseAt: metadata.responseAt, result: parseMann(await readFile(`${file}.html`, "utf8"), sourceId, metadata.date) };
+  }
   const read = (name: string) => readFile(join(directory, sourceId, name), "utf8");
   const file = sourceId === "trylon" ? "calendar.ics" : sourceId === "main" ? "calendar.json" : sourceId === "parkway" ? "movies.html" : "home.html";
   const metadataFile = sourceId === "trylon" ? "metadata.json" : file.replace(/\.(html|json)$/, ".metadata.json");

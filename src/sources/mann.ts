@@ -28,7 +28,11 @@ export function parseMann(raw: string, venue: MannVenue, expectedDate: string): 
     const expectedLabel = new Intl.DateTimeFormat("en-US", {
       timeZone: "UTC", weekday: "long", month: "short", day: "numeric",
     }).format(date);
-    if (!context.includes(expectedLabel)) throw new Error(`Mann date mismatch: expected ${expectedLabel}, received ${context}`);
+    const selectedDate = $('[class*="ContextPickers_dayStrip"] button[aria-pressed="true"] [class*="ContextPickers_dayDate"]').text().trim();
+    const shortDate = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(date);
+    if (!context.includes(expectedLabel) && !(/ · (Today|Tomorrow)$/.test(context) && selectedDate === shortDate)) {
+      throw new Error(`Mann date mismatch: expected ${expectedLabel}, received ${context}`);
+    }
     const cards = $('section[aria-label="Now playing"]');
     if (cards.length !== 1) throw new Error("Missing Mann Now playing section");
     const candidates: unknown[] = [];

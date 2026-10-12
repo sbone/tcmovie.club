@@ -3,8 +3,9 @@ import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Temporal } from "@js-temporal/polyfill";
 import { instantSchema, sourceIdSchema, timeZone } from "./domain.js";
+import type { SourceId } from "./domain.js";
 import { dedupe } from "./dedupe.js";
-import { CollectionError, createHttp, dayMs, readHttp, runtime, saveHttp, userAgent } from "./http.js";
+import { CollectionError, createHttp, dayMs, origins, readHttp, runtime, saveHttp, userAgent } from "./http.js";
 import type { Runtime } from "./http.js";
 import { errorMessage } from "./parse.js";
 import { collectSource } from "./sources/collect.js";
@@ -26,7 +27,8 @@ export async function collect(options: { contact: string; storage: string; outpu
   const lock = join(options.storage, "collect.lock");
   await mkdir(lock); // One collector owns request accounting and publication at a time.
   try {
-    const outcomes = await Promise.allSettled(sourceIdSchema.options.map(async sourceId => {
+    const hostRequests = new Map<string, number>();
+    const collectOne = async (sourceId: SourceId) => {
       const previous = await readSource(options.storage, sourceId);
       const state = await readHttp(httpDirectory, sourceId);
       const requestedUrls: string[] = [];
@@ -48,7 +50,7 @@ export async function collect(options: { contact: string; storage: string; outpu
           const http = createHttp(sourceId, agent, state, save, { ...clock, fetch: (input, init) => {
             requestedUrls.push(String(input));
             return clock.fetch(input, init);
-          } });
+          } }, hostRequests);
           const capture = await collectSource(sourceId, http, firstDate);
           next = acceptSource(previous, sourceId, capture.result, capture.responseAt);
           if (next.state.kind === "failed") throw new Error(next.state.error.message);
@@ -83,6 +85,14 @@ export async function collect(options: { contact: string; storage: string; outpu
       return { info, screenings: snapshot?.screenings ?? [], failed: next.state.kind === "failed" || !!state.paused,
         requests: requestedUrls.length, requestedUrls,
         review: requestedUrls.length > 0 && next.state.kind === "failed" && ["parse", "validation", "anomaly"].includes(next.state.error.kind) };
+    };
+    // Venues sharing a host must share request spacing, including robots checks.
+    const hosts = new Map<string, Promise<unknown>>();
+    const outcomes = await Promise.allSettled(sourceIdSchema.options.map(sourceId => {
+      const origin = origins[sourceId];
+      const pending = (hosts.get(origin) ?? Promise.resolve()).then(() => collectOne(sourceId));
+      hosts.set(origin, pending.catch(() => undefined));
+      return pending;
     }));
     const collected = outcomes.map(result => {
       if (result.status === "rejected") throw result.reason;

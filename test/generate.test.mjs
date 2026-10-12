@@ -8,7 +8,7 @@ import { test } from "node:test";
 import { load } from "cheerio";
 import { smokeSite } from "../dist/automation.js";
 
-test("offline build combines five sources and retains a venue when its next import breaks", async () => {
+test("offline build combines seven sources and retains a venue when its next import breaks", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-generate-"));
   const captures = join(directory, "fixtures");
   const output = join(directory, "site");
@@ -18,6 +18,12 @@ test("offline build combines five sources and retains a venue when its next impo
     await cp("test/fixtures", captures, { recursive: true });
     const success = run();
     assert.equal(success.status, 0, success.stderr);
+    for (const venue of ["grandview", "highland"]) {
+      const saved = JSON.parse(await readFile(join(state, `${venue}.json`), "utf8"));
+      assert.equal(saved.state.kind, "ready");
+      assert.equal(saved.state.snapshot.screenings.length, 4);
+      assert.ok(saved.state.snapshot.screenings.every(show => show.venueId === venue));
+    }
     assert.equal((await smokeSite(output, "2026-09-29")).pages, 14);
     const html = await readFile(join(output, "index.html"), "utf8");
     const $ = load(html);
