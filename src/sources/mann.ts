@@ -11,7 +11,7 @@ const slug = { grandview: "grandview-1-2", highland: "highland-1-2" } as const;
 // Its buttons are ordered by relative day offset, starting with Today.
 export function mannDays(raw: string): number[] {
   const $ = load(raw);
-  return $(".ContextPickers_dayStrip__YWZWD button").toArray()
+  return $('[class*="ContextPickers_dayStrip"] button').toArray()
     .map((element, index) => ({ element, index }))
     .filter(({ element, index }) => index < 14 && !$(element).is("[disabled]") && !$(element).attr("class")?.includes("dayMore"))
     .map(({ index }) => index);
@@ -23,7 +23,7 @@ export function parseMann(raw: string, venue: MannVenue, expectedDate: string): 
     const title = $("title").first().text();
     const name = venue === "grandview" ? "Grandview 1 & 2" : "Highland 1 & 2";
     if (!title.includes(name)) throw new Error(`Unexpected Mann theater: ${title}`);
-    const context = $(".StickyContext_text__g4flv").first().text().trim();
+    const context = $('[class*="StickyContext_text"]').first().text().trim();
     const date = new Date(`${expectedDate}T12:00:00Z`);
     const expectedLabel = new Intl.DateTimeFormat("en-US", {
       timeZone: "UTC", weekday: "long", month: "short", day: "numeric",
@@ -46,7 +46,7 @@ export function parseMann(raw: string, venue: MannVenue, expectedDate: string): 
       showtimes.each((_, element) => {
         const link = $(element);
         const path = link.attr("href") ?? "";
-        const id = path.match(/^\/booking\/([\w-]+)\?/ )?.[1];
+        const id = path.match(/^\/booking\/([\w-]+)\?/)?.[1];
         const time = link.clone().find("span").remove().end().text().trim();
         try {
           if (!id) throw new Error("Missing stable booking ID");
