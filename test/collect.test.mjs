@@ -23,6 +23,12 @@ for (const source of ["heights", "riverview", "parkway"]) {
 }
 fixtures.set("https://www.trylon.org/feed/my-calendar-google/", await read("trylon", "calendar.ics"));
 const mainCalendar = JSON.parse(await read("main", "calendar.json"));
+const mann = await readFile("test/fixtures/mann/grandview-day2.html", "utf8");
+const mannFor = (venue, day) => mann
+  .replaceAll("Grandview 1 &amp; 2", venue === "highland" ? "Highland 1 &amp; 2" : "Grandview 1 &amp; 2")
+  .replaceAll("grandview-1-2", venue === "highland" ? "highland-1-2" : "grandview-1-2")
+  .replaceAll("/booking/83-", venue === "highland" ? "/booking/85-" : "/booking/83-")
+  .replaceAll("Wednesday, Oct 14", new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" }).format(new Date(`2026-09-${String(29 + day).padStart(2, "0")}T12:00:00Z`)));
 
 function fakeClock() {
   let now = morning;
@@ -37,6 +43,13 @@ function fakeClock() {
       const q = new URL(url).searchParams;
       body = JSON.stringify({ events: mainCalendar.events.filter(group =>
         group.date >= q.get("start_date") && group.date < q.get("end_date")) });
+    }
+    if (!body && url.startsWith("https://www.manntheatres.com/")) {
+      const q = new URL(url).searchParams;
+      const day = Number(q.get("day"));
+      const venue = q.get("theatre") === "highland-1-2" ? "highland" : "grandview";
+      const date = new Date(Date.parse("2026-09-29T12:00:00Z") + day * 86_400_000);
+      body = mannFor(venue, day).replace(/\w+, \w+ \d{1,2}(?=<\/div>)/, new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "short", day: "numeric" }).format(date));
     }
     if (!body && path.startsWith("/base/index/")) {
       const date = new Date(`${path.slice(-10)}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
@@ -85,7 +98,7 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     const updated = await readSource(storage, "heights");
     assert.equal(updated.state.snapshot.changedAt, heights.state.snapshot.changedAt);
     assert.ok(updated.state.snapshot.checkedAt > heights.state.snapshot.checkedAt);
-    for (const source of ["trylon", "heights", "parkway", "riverview", "main"]) {
+    for (const source of ["trylon", "heights", "parkway", "riverview", "main", "grandview", "highland"]) {
       assert.ok((await readHttp(join(storage, "http"), source)).requestsToday <= 12);
     }
     assert.ok(fake.calls.some(call => call.init.headers["If-None-Match"] === '"fixture"'));
@@ -106,7 +119,7 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     assert.equal((await readSource(storage, "parkway")).state.kind, "ready");
     const html = await readFile(join(output, "index.html"), "utf8");
     assert.match(html, /Import failed/);
-    assert.equal(JSON.parse(await readFile(join(output, "sources.json"))).length, 5);
+    assert.equal(JSON.parse(await readFile(join(output, "sources.json"))).length, 7);
     let forbidden = 0;
     fake.clock.fetch = async (url, init) => { if (url.includes("heightstheater")) forbidden++; return oldFetch(url, init); };
     fake.setTime(morning + dayMs + 12 * 3_600_000);
@@ -157,7 +170,7 @@ test("manual Trylon runs outside morning hours, respects 24 hours, and retains a
   try {
     const storage = join(directory, "live"), httpDirectory = join(storage, "http");
     await mkdir(httpDirectory, { recursive: true });
-    for (const source of ["heights", "parkway", "riverview", "main"]) {
+    for (const source of ["heights", "parkway", "riverview", "main", "grandview", "highland"]) {
       await writeFile(join(httpDirectory, `${source}.json`), JSON.stringify({ paused: "Not part of this test" }));
     }
     const capture = await loadCapturedSource("trylon", "test/fixtures");
@@ -254,7 +267,7 @@ test("access failures remain paused and Trylon's 24-hour guard survives the spri
   try {
     const httpDirectory = join(directory, "http");
     await mkdir(httpDirectory);
-    for (const source of ["heights", "parkway", "riverview", "main"]) {
+    for (const source of ["heights", "parkway", "riverview", "main", "grandview", "highland"]) {
       await writeFile(join(httpDirectory, `${source}.json`), JSON.stringify({ paused: "Review required" }));
     }
     const options = { contact: "test@example.com", storage: directory, output: join(directory, "site"), trylon: "morning-only" };
