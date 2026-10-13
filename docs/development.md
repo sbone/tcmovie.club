@@ -90,8 +90,9 @@ Every run has its own `.state/runs/refresh-*/` directory containing `site/` and
 `report.json`. Only `site/` is uploaded. Reports include each theater's request
 count and requested URLs, freshness, diagnostics, smoke-test results, deployment,
 and production verification status. Counts include robots checks, redirects,
-conditional revalidation, and failed requests. Old reports remain for inspection;
-periodically archive/remove old run directories rather than live state.
+conditional revalidation, and failed requests. Completed run directories remain
+for 30 days, then the refresh workflow removes them. Archive any evidence needed
+longer before it expires; live source state is retained separately.
 
 Last-good schedules remain usable when a source fails, with visible freshness
 and error labels; other theaters can still publish. A missing saved theater,
@@ -345,7 +346,36 @@ were checked locally; automated
 tests simulate HTTP and do not establish current source access or validate a
 production deployment.
 
-The [original project brief](../twin-cities-movie-screenings-codex-handoff.md) is a
-historical roadmap; this guide and the current code describe implemented behavior.
 Raw research responses remain in ignored `.research/`; committed HTML fixtures
 omit executable scripts and form tokens.
+
+## Generated files and cleanup
+
+Builds clear `dist/` before compiling, so removed or renamed modules do not leave
+executable leftovers. Successful site generation removes obsolete date directories
+and hashed sharing PNGs from the same output folder, preserving unrelated files.
+Use an output directory dedicated to generated pages. Generated output, local state, research captures, environment
+files, logs, temporary files, and test reports are ignored by Git. The SVG in
+`assets/` is the sharing-card source; PNGs are generated into the output directory.
+
+- `npm run clean` removes reproducible `dist/`, `site/`, and `.state/demo/` output.
+  Run `npm run generate` to rebuild the historical preview. Stop any server serving
+  `site/` before cleaning it.
+- `npm run clean:history -- --dry-run` lists completed refresh runs and manual
+  previews older than 30 days; omit `--dry-run` to remove them. This also runs before
+  each `npm run refresh` workflow, including scheduled refreshes.
+
+History cleanup requires a completion timestamp in `report.json` (automatic runs)
+or `finished.json` (manual previews). It preserves recent, unfinished, malformed,
+and older unmarked previews, as well as unexpected directories and symlinked state.
+Inspect abandoned/unmarked previews manually before removing them. A preview's
+retention period starts when its interactive workflow finishes.
+
+Neither cleanup command removes `.state/live/`, HTTP budgets/backoff, access pauses,
+last-good schedules, ratings/review caches, research evidence, fixtures, dependencies,
+or local configuration. Keep `.state/mann-verification/` while the captured source
+evidence remains useful. Scheduled logs are retained; inspect them during maintenance.
+
+The superseded original handoff and initial static sharing PNG remain recoverable
+from Git history. Current product behavior is documented in the README, this guide,
+and the source adapter notes.

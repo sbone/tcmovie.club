@@ -1,7 +1,7 @@
 import { startLabel, timeZone } from "./domain.js";
 import type { Screening, SourceId } from "./domain.js";
 import { chicagoDate } from "./time.js";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { Resvg } from "@resvg/resvg-js";
 import { gzipSync } from "node:zlib";
 import type { Diagnostic } from "./parse.js";
@@ -38,9 +38,11 @@ export async function writeSite(output: string, dates: readonly string[], screen
   };
   await mkdir(output, { recursive: true });
   await mkdir(`${output}/social`, { recursive: true });
+  const images = new Set<string>();
   for (const date of dates) {
     const card = socialCard(date, screenings.filter(item => chicagoDate(item.start.at) === date));
     const png = new Resvg(card.svg).render().asPng();
+    images.add(card.imagePath.split("/").at(-1)!);
     await writeFile(`${output}${card.imagePath}`, png);
     if (date === dates[0]) await writeFile(`${output}/social-card.png`, png);
     const html = renderDate(date, screenings, sources, dates, false);
@@ -50,6 +52,17 @@ export async function writeSite(output: string, dates: readonly string[], screen
   }
   await writeFile(`${output}/screenings.json`, `${JSON.stringify(screenings, null, 2)}\n`);
   await writeFile(`${output}/sources.json`, `${JSON.stringify(sources, null, 2)}\n`);
+  // Remove only obsolete generated pages/images after the new output succeeds.
+  for (const entry of await readdir(output, { withFileTypes: true })) {
+    if (entry.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(entry.name) && !dates.includes(entry.name)) {
+      await rm(`${output}/${entry.name}`, { recursive: true });
+    }
+  }
+  for (const entry of await readdir(`${output}/social`, { withFileTypes: true })) {
+    if (entry.isFile() && /^\d{4}-\d{2}-\d{2}-[a-f0-9]{12}\.png$/.test(entry.name) && !images.has(entry.name)) {
+      await rm(`${output}/social/${entry.name}`);
+    }
+  }
 }
 
 export function renderDate(date: string, screenings: readonly Screening[], sources: readonly SourceInfo[], dates: readonly string[] = [date], home = false): string {
