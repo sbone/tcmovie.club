@@ -5,6 +5,19 @@ import type { Diagnostic, ParsedSource } from "../parse.js";
 import { chicagoTime, clock24, englishDate, inDateWindow } from "../time.js";
 import type { DateWindow } from "../time.js";
 
+function ticketIdentity(href: string | undefined, path: string, at: string) {
+  const sourceEventId = href?.match(/^\/order\/add-tickets\/(\d+)(?:\/|$)/)?.[1];
+  if (sourceEventId) return { sourceEventId, ticketUrl: null };
+  if (href && /^https?:\/\//.test(href)) {
+    const url = new URL(href);
+    if (!["www.heightstheater.com", "heightstheater.com"].includes(url.hostname) && !url.username && !url.password) {
+      // External vendors have no Heights ticket ID; the film path and start identify each session.
+      return { sourceEventId: `external:${path}:${at}`, ticketUrl: url.href };
+    }
+  }
+  throw new Error("Missing stable showtime ID or external ticket link");
+}
+
 export function parseHeights(raw: string): Result<ParsedSource, string> {
   const $ = load(raw);
   const cards = $(".featured");
@@ -27,6 +40,11 @@ export function parseHeights(raw: string): Result<ParsedSource, string> {
     shows.each((_, row) => {
       const show = $(row);
       let record = `${path}:${index}`;
+      if (show.hasClass("view-all") && !show.find("time").length
+        && show.find("a[href]").length === 1 && show.find("a[href]").attr("href") === path) {
+        diagnostics.push({ kind: "excluded", record, message: "View All Shows navigation, not an individual screening" });
+        return;
+      }
       if (show.find('.format-and-tix-link a').toArray().some(link => /^buy pass$/i.test($(link).text().trim()))) {
         diagnostics.push({ kind: "excluded", record, message: "Series pass, not an individual screening" });
         return;
@@ -35,13 +53,12 @@ export function parseHeights(raw: string): Result<ParsedSource, string> {
         const local = show.find("time[datetime]").first().attr("datetime");
         if (!local) throw new Error("Missing time");
         const at = chicagoTime(local.replace(" ", "T"));
-        const ticketPath = show.find('a[href^="/order/add-tickets/"]').first().attr("href");
-        const sourceEventId = ticketPath?.match(/^\/order\/add-tickets\/(\d+)(?:\/|$)/)?.[1];
-        if (!sourceEventId && show.hasClass("past")) {
+        const ticketPath = show.find('a[href^="/order/add-tickets/"], a[href^="https://"], a[href^="http://"]').first().attr("href");
+        if (!ticketPath && show.hasClass("past")) {
           diagnostics.push({ kind: "excluded", record, message: "Past homepage showtime has no ticket ID; use the dated calendar listing" });
           return;
         }
-        if (!sourceEventId) throw new Error("Missing stable showtime ID");
+        const { sourceEventId, ticketUrl } = ticketIdentity(ticketPath, path, at);
         record = sourceEventId;
         const format = show.find('.format-and-tix-link a[href="#"]').text().trim() || null;
         const series = show.find('a[href^="/series-and-festivals/"]').first().text().trim() || null;
@@ -49,7 +66,7 @@ export function parseHeights(raw: string): Result<ParsedSource, string> {
           id: `heights:${record}`, title, venueId: "heights",
           start: { kind: "screening", at, doorsAt: null }, endsAt: null,
           eventUrl: new URL(path, "https://www.heightstheater.com").href,
-          ticketUrl: null, format, series, tags: series ? [series] : [],
+          ticketUrl, format, series, tags: series ? [series] : [],
           status: { kind: "scheduled", availability: /sold[ -]?out/i.test(show.text()) ? "sold-out" : "unknown" },
           access: /members[ -]?only/i.test(title) ? "members-only" : "unknown",
           sourceId: "heights", sourceEventId,
@@ -93,14 +110,14 @@ export function parseHeightsCalendar(raw: string, window?: DateWindow): Result<P
       const row = $(element);
       let record = `${path}:${index}`;
       try {
-        const ticket = row.find('a[href^="/order/add-tickets/"]').first();
-        const sourceEventId = ticket.attr("href")?.match(/^\/order\/add-tickets\/(\d+)(?:\/|$)/)?.[1];
-        if (!sourceEventId) throw new Error("Missing stable calendar showtime ID");
+        const ticket = row.find("a[href]").first();
+        const at = chicagoTime(`${date}T${clock24(ticket.text())}`);
+        const { sourceEventId, ticketUrl } = ticketIdentity(ticket.attr("href"), path, at);
         record = sourceEventId;
         candidates.push({ id: `heights:${record}`, title, venueId: "heights",
-          start: { kind: "screening", at: chicagoTime(`${date}T${clock24(ticket.text())}`), doorsAt: null }, endsAt: null,
+          start: { kind: "screening", at, doorsAt: null }, endsAt: null,
           eventUrl: new URL(path, "https://www.heightstheater.com").href,
-          ticketUrl: null, format: row.find(".film-format").text().trim() || null,
+          ticketUrl, format: row.find(".film-format").text().trim() || null,
           series, tags: series ? [series] : [],
           status: { kind: "scheduled", availability: /sold[ -]?out/i.test(row.text()) ? "sold-out" : "unknown" },
           access: /members[ -]?only/i.test(title) ? "members-only" : "unknown",

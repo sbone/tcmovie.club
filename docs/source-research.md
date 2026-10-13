@@ -69,6 +69,30 @@ Ticket action paths were not fetched. The sampled pages had private/no-cache
 headers and no observed ETag or Last-Modified; caching headers do not establish
 collection permission.
 
+### Heights parser recovery — October 13, 2026
+
+Saved production responses exposed two parser failures: the homepage's
+`showtime view-all` navigation row was treated as a screening, and calendar
+showings with external ticket links had no internal numeric ticket ID.
+Reduced October 8/13 captures in `test/fixtures/heights/regressions/` preserve
+the Ueck and History of Concrete navigation rows, Silver Screamers' external
+registration link, and Houdini 100's multiple externally ticketed sessions.
+
+The parser excludes the explicit navigation row and identifies external-ticket
+sessions by film path and resolved start time, consistently across homepage and
+calendar. It retains external links without requesting them. Missing times,
+broken internal ticket IDs, and conflicting duplicates still reject an import.
+These fixes were checked by replaying saved responses; replay preserves their
+original timestamps and does not establish current source access.
+
+A subsequent user-authorized Heights-only check fetched the homepage and calendar
+with the existing HTTP client, reusing today's robots check and recording both
+requests against the live budget. Both returned 200. The candidate accepted 31
+screenings with a conservative response timestamp of `2026-10-13T13:35:18Z`;
+all 14 generated preview pages passed smoke checks. Candidate data and responses
+were saved under ignored `.state/previews/`. Live accepted listings, retry backoff,
+and the deployed site were not replaced during this check.
+
 ## Riverview — September 29, 2026
 
 [Robots](https://www.riverviewtheater.com/robots.txt) returned 200 with comments

@@ -25,9 +25,12 @@ test("Heights calendar validates only showtimes within the inclusive refresh win
   assert.equal(result.kind, 'ok');
   assert.deepEqual(result.value.screenings.map(show => show.id), ['heights:701', 'heights:702']);
   assert.deepEqual(result.value.diagnostics, []);
-  const damaged = parseHeightsCalendar(raw.replace(film(702), external[0]), window);
-  assert.ok(damaged.value.diagnostics.some(note => note.kind === 'invalid' && note.message.includes('Missing stable calendar showtime ID')));
-  assert.ok(parseHeightsCalendar(raw).value.diagnostics.some(note => note.kind === 'invalid'), 'unbounded fixture parsing still validates the full month');
+  const broken = '<a href="/order/add-tickets/broken/nojs">7:30pm</a>';
+  const damaged = parseHeightsCalendar(raw.replace(film(702), broken), window);
+  assert.ok(damaged.value.diagnostics.some(note => note.kind === 'invalid' && note.message.includes('Missing stable showtime ID')));
+  const outside = raw.replace(external[0], broken);
+  assert.deepEqual(parseHeightsCalendar(outside, window).value.diagnostics, []);
+  assert.ok(parseHeightsCalendar(outside).value.diagnostics.some(note => note.kind === 'invalid'), 'unbounded fixture parsing still validates the full month');
 });
 
 for (const [source, parse, raw, details, count] of [

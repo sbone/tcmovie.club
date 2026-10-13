@@ -1,0 +1,20 @@
+[
+  {
+    "file": "home-ueck.html",
+    "sourceUrl": "https://www.heightstheater.com/",
+    "responseAt": "2026-10-08T05:30:59.000Z",
+    "notes": "Reduced from a saved production HTTP response; retains original listing/title/time/ticket markup for parser regressions. No new requests. Images, scripts, unrelated listings and layout removed."
+  },
+  {
+    "file": "home-concrete.html",
+    "sourceUrl": "https://www.heightstheater.com/",
+    "responseAt": "2026-10-13T05:30:56.000Z",
+    "notes": "Reduced from a saved production HTTP response; retains original listing/title/time/ticket markup for parser regressions. No new requests. Images, scripts, unrelated listings and layout removed."
+  },
+  {
+    "file": "calendar-external.html",
+    "sourceUrl": "https://www.heightstheater.com/calendar",
+    "responseAt": "2026-10-13T05:31:06.000Z",
+    "notes": "Reduced from a saved production HTTP response; retains original listing/title/time/ticket markup for parser regressions. No new requests. Images, scripts, unrelated listings and layout removed."
+  }
+]
