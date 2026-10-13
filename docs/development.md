@@ -296,6 +296,12 @@ screens, smaller labels and tighter gaps keep the theater names visible with
 The self-contained function in [filters.ts](../src/filters.ts) is compiled and
 embedded by the renderer, with no extra browser request or runtime dependency.
 
+The source-freshness footer combines theater website links and last-checked
+timestamps in a two-column table (Central time). Asterisks mark stale, failed, or
+never-checked sources; one shared notice explains incomplete/stale coverage.
+Failed sources are named together below the table. Detailed collector notes and
+errors remain in `sources.json` rather than repeating in every visible row.
+
 ## System theme
 
 The page follows the system's light/dark preference using CSS only. Dark mode uses

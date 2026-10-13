@@ -11,6 +11,12 @@ import { socialCard } from "./social.js";
 export const venueNames = {
   trylon: "Trylon", heights: "Heights", parkway: "Parkway", riverview: "Riverview", main: "The Main Cinema", grandview: "Grandview", highland: "Highland",
 } as const;
+const venueUrls = {
+  trylon: "https://www.trylon.org/", heights: "https://www.heightstheater.com/",
+  parkway: "https://theparkwaytheater.com/", riverview: "https://www.riverviewtheater.com/",
+  main: "https://mspfilm.org/", grandview: "https://www.manntheatres.com/?theatre=grandview-1-2",
+  highland: "https://www.manntheatres.com/?theatre=highland-1-2",
+} as const;
 
 export type SourceInfo = Readonly<{
   sourceId: SourceId;
@@ -75,6 +81,9 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
   const url = home ? "https://tcmovie.club/" : `https://tcmovie.club/${date}/`;
   const image = `https://tcmovie.club${card.imagePath}`;
   const imageAlt = card.alt;
+  const stale = (source: SourceInfo) => source.stale || !!source.error || !source.checkedAt;
+  const hasStale = sources.some(stale);
+  const failedNames = sources.filter(source => source.error).map(source => venueNames[source.sourceId]);
   const links = dates.map(value => `<a href="/${escape(value)}/"${value === date ? ' aria-current="date"' : ""}>${escape(dayLabel.format(new Date(`${value}T12:00:00Z`)))}</a>`).join(" ");
   const rows = day.map(item => {
     const labels = [item.format, item.series,
@@ -130,6 +139,7 @@ body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem
 .theater-buttons button:not(:disabled):active{box-shadow:inset 0 0 0 2px currentColor}
 h1{font-size:1.1rem;font-weight:650;margin:1rem 0 .2rem}.site-name a{display:inline-block;padding:.2rem 0;color:inherit;text-decoration:none}.site-name a:hover{text-decoration:underline}.schedule-notes{margin-top:1.25rem}
 footer hr{border:0;border-top:1px solid var(--rule);margin:1.5rem 0 .75rem}.footer-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem}.footer-links span{margin-left:auto;text-align:right}
+.source-freshness{width:100%;border-collapse:collapse;margin-bottom:.75rem;text-align:left}.source-freshness th,.source-freshness td{padding:.4rem .75rem .4rem 0;border-bottom:1px solid var(--rule);vertical-align:top}.source-freshness th:first-child{width:40%}.source-freshness td:last-child,.source-freshness th:last-child{padding-right:0}.source-freshness sup{margin-left:.15em}
 @media(prefers-color-scheme:dark){
 :root{color-scheme:dark;--paper:#171410;--ink:#eee3cf;--link:#d4b888;--rule:#625547;--hover:#30291f;--notice:#d4b888;--on-venue:#171410;--selected-bg:#ddc59c;--selected-ink:#211c15}
 html{background-image:linear-gradient(180deg,#231d16,var(--paper) 32rem);background-repeat:no-repeat}
@@ -160,19 +170,17 @@ ${Object.entries(venueNames).map(([id, name]) => `<button type="button" data-the
 <p id="filter-status" role="status" aria-live="polite">${rows ? "" : "No screenings found in the saved data for this date."}</p>
 ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
 <div class="schedule-notes"><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p>
-${sources.some(source => source.stale) ? '<p class="notice">Saved source data may be stale. This schedule may be incomplete.</p>' : sources.some(source => source.incomplete) ? '<p class="notice">Some dates or screening details remain unconfirmed. Check the venue for its latest schedule.</p>' : ""}</div>
+</div>
 <section aria-labelledby="about-tcmc"><h2 id="about-tcmc">About TCMC</h2>
 <p>Built by <a href="https://letterboxd.com/sbone/">a film enthusiast</a> who wanted one place to see what's playing on a random night.</p>
-<p>Twin Cities Movie Screenings brings showtimes from these fine theaters into one place:</p>
-<ul><li><a href="https://www.trylon.org/">Trylon Cinema</a></li>
-<li><a href="https://www.heightstheater.com/">Heights Theater</a></li>
-<li><a href="https://theparkwaytheater.com/">The Parkway Theater</a></li>
-<li><a href="https://www.riverviewtheater.com/">Riverview Theater</a></li>
-<li><a href="https://mspfilm.org/">The Main Cinema</a></li>
-<li><a href="https://www.manntheatres.com/?theatre=grandview-1-2">Mann Grandview 1 &amp; 2</a></li>
-<li><a href="https://www.manntheatres.com/?theatre=highland-1-2">Mann Highland 1 &amp; 2</a></li></ul>
+<p>Twin Cities Movie Screenings brings showtimes from local theaters into one place.</p>
 </section></main>
-<footer><h2>Source freshness</h2>${sources.map(source => `<p><strong>${venueNames[source.sourceId]}</strong> — ${source.checkedAt ? escape(stamp.format(new Date(source.checkedAt))) : "Never checked"}${source.stale ? " · May be stale" : ""}. ${escape(source.note)}</p>`).join("\n")}
+<footer><h2 id="source-freshness">Source freshness</h2>
+<table class="source-freshness" aria-labelledby="source-freshness"><thead><tr><th scope="col">Theater</th><th scope="col">Last checked (Central)</th></tr></thead><tbody>
+${sources.map(source => `<tr><th scope="row"><a href="${escape(venueUrls[source.sourceId])}">${venueNames[source.sourceId]}</a></th><td${stale(source) ? ' aria-describedby="source-notice"' : ""}>${source.checkedAt ? `<time datetime="${escape(source.checkedAt)}">${escape(stamp.format(new Date(source.checkedAt)))}</time>` : "Never checked"}${stale(source) ? '<sup aria-label="Older or unavailable data">*</sup>' : ""}</td></tr>`).join("\n")}
+</tbody></table>
+${hasStale || sources.some(source => source.incomplete) ? `<p id="source-notice">${hasStale ? "* Marked listings may be stale. " : ""}Some dates or screening details may be incomplete; check theater links for the latest schedule.</p>` : ""}
+${failedNames.length ? `<p>Import failed for ${escape(new Intl.ListFormat("en-US").format(failedNames))}; showing saved listings where available.</p>` : ""}
 <hr><div class="footer-links"><a href="https://github.com/sbone/tcmovie.club">Source on GitHub</a><span>A <a href="https://qualityti.me">Quality Time</a> Effort</span></div>
 </footer><script>(${initTheaterFilters.toString()})();
 document.querySelector('nav [aria-current="date"]')?.scrollIntoView({block:"nearest",inline:"center"});</script></body></html>`;

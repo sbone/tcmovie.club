@@ -39,6 +39,7 @@ for (const sourceId of sourceIdSchema.options) {
   screenings.push(...sourceScreenings(next.state));
   const snapshot = lastGood(next.state);
   sources.push({ sourceId, checkedAt: snapshot?.checkedAt ?? null, stale: true,
+    error: next.state.kind === "failed" ? next.state.error.message : null,
     note: `${notes[sourceId]}${next.state.kind === "failed" ? " Import failed; retaining last-known-good data." : ""}` });
   if (next.state.kind === "failed") { rejected = true; console.error(`${sourceId}: ${next.state.error.message}`); }
 }
