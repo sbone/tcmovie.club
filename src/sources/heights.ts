@@ -2,7 +2,8 @@ import { load } from "cheerio";
 import type { Result } from "../domain.js";
 import { errorMessage, finishParse } from "../parse.js";
 import type { Diagnostic, ParsedSource } from "../parse.js";
-import { chicagoTime, clock24, englishDate } from "../time.js";
+import { chicagoTime, clock24, englishDate, inDateWindow } from "../time.js";
+import type { DateWindow } from "../time.js";
 
 export function parseHeights(raw: string): Result<ParsedSource, string> {
   const $ = load(raw);
@@ -61,7 +62,7 @@ export function parseHeights(raw: string): Result<ParsedSource, string> {
   return { kind: "ok", value: finishParse(candidates, diagnostics) };
 }
 
-export function parseHeightsCalendar(raw: string): Result<ParsedSource, string> {
+export function parseHeightsCalendar(raw: string, window?: DateWindow): Result<ParsedSource, string> {
   const $ = load(raw);
   const month = $("title").text().match(/^([A-Za-z]+) (\d{4}) \| Heights Theater$/);
   if (!month || !$(".calendar-cell[id^=day]").length || !$(".calendar-listing").length) {
@@ -72,6 +73,15 @@ export function parseHeightsCalendar(raw: string): Result<ParsedSource, string> 
   $(".calendar-cell[id^=day] .calendar-listing").each((index, element) => {
     const card = $(element);
     const path = card.find('h3 a[href^="/films-and-events/"]').attr("href");
+    let date: string;
+    try {
+      const day = card.closest(".calendar-cell").attr("id")?.replace(/^day/, "");
+      date = englishDate(`${month[1]} ${day}, ${month[2]}`);
+      if (window && !inDateWindow(date, window)) return;
+    } catch (error) {
+      diagnostics.push({ kind: "invalid", record: `${path}:${index}`, message: errorMessage(error) });
+      return;
+    }
     const title = card.find("h3 a").text().trim();
     const series = card.find('a[href^="/series-and-festivals/"]').first().text().trim() || null;
     const shows = card.find(".times li");
@@ -83,8 +93,6 @@ export function parseHeightsCalendar(raw: string): Result<ParsedSource, string> 
       const row = $(element);
       let record = `${path}:${index}`;
       try {
-        const day = card.closest(".calendar-cell").attr("id")?.replace(/^day/, "");
-        const date = englishDate(`${month[1]} ${day}, ${month[2]}`);
         const ticket = row.find('a[href^="/order/add-tickets/"]').first();
         const sourceEventId = ticket.attr("href")?.match(/^\/order\/add-tickets\/(\d+)(?:\/|$)/)?.[1];
         if (!sourceEventId) throw new Error("Missing stable calendar showtime ID");

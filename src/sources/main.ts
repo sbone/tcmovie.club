@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Result } from "../domain.js";
-import { finishParse } from "../parse.js";
+import { errorMessage, finishParse } from "../parse.js";
 import type { Diagnostic, ParsedSource } from "../parse.js";
 import { chicagoTime, clock24 } from "../time.js";
 
@@ -35,7 +35,7 @@ export function parseMain(raw: string): Result<ParsedSource, string> {
         sourceId: "main", sourceEventId: String(event.event_id),
       });
     } catch (error) {
-      diagnostics.push({ kind: "invalid", record: String(event.event_id), message: String(error) });
+      diagnostics.push({ kind: "invalid", record: String(event.event_id), message: errorMessage(error) });
     }
   }
   return { kind: "ok", value: finishParse(candidates, diagnostics) };

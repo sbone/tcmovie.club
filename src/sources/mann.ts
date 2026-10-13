@@ -2,7 +2,7 @@ import { load } from "cheerio";
 import type { Result } from "../domain.js";
 import type { Diagnostic, ParsedSource } from "../parse.js";
 import { errorMessage, finishParse } from "../parse.js";
-import { chicagoTime, clock24 } from "../time.js";
+import { chicagoTime, clock24, scheduleDays } from "../time.js";
 
 export type MannVenue = "grandview" | "highland";
 const slug = { grandview: "grandview-1-2", highland: "highland-1-2" } as const;
@@ -13,7 +13,7 @@ export function mannDays(raw: string): number[] {
   const $ = load(raw);
   return $('[class*="ContextPickers_dayStrip"] button').toArray()
     .map((element, index) => ({ element, index }))
-    .filter(({ element, index }) => index < 14 && !$(element).is("[disabled]") && !$(element).attr("class")?.includes("dayMore"))
+    .filter(({ element, index }) => index < scheduleDays && !$(element).is("[disabled]") && !$(element).attr("class")?.includes("dayMore"))
     .map(({ index }) => index);
 }
 

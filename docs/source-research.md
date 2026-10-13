@@ -21,7 +21,7 @@ its last capture was less than 24 hours old.
 The captured calendar has 194 VEVENTs with distinct UIDs: 192 at Trylon and two
 at Heights, dated August 1, 2026–November 24, 2027. Its published refresh interval
 is 24 hours ([RFC 7986 §5.7](https://www.rfc-editor.org/rfc/rfc7986.html#section-5.7));
-collection enforces that minimum even across DST and delayed runs. ETag and
+the collection interval was later changed as recorded below. ETag and
 Last-Modified were present; the initial inspection did not test 304 behavior.
 
 Parser decisions supported by this capture:
@@ -45,6 +45,15 @@ explicit program endings. Evidence came from indexed official
 in `test/fixtures/trylon/reviewed.json` with separate metadata. They never modify
 the raw feed or enter live ingestion; indexed evidence does not prove current
 availability. The raw feed remains unchanged.
+
+### Trylon interval update — October 6, 2026
+
+The user authorized reducing the minimum interval to 12 elapsed hours, including
+a manual refresh followed about 13 hours later by the 12:30 AM scheduled run.
+This supersedes the original 24-hour polling policy. The feed metadata remains
+unchanged. The scheduled refresh still runs once daily; request windows, budgets,
+robots checks, access pauses, conditional requests, and backoff remain in force.
+No theater requests were made to change this policy.
 
 ## Heights — September 29, 2026
 
