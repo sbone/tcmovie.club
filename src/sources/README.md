@@ -7,6 +7,16 @@ The generator rejects an import with any invalid records and retains its last
 good snapshot. Fixtures, capture metadata, and representative expected records
 live under `test/fixtures/<source>/`.
 
+Keep shared policy in the existing modules: `time.ts` owns `scheduleDays`,
+`DateWindow`, and the inclusive `inDateWindow` check; `parse.ts` owns record and
+duplicate validation; `store.ts` owns acceptance and last-good fallback. Live
+schedule-drop checks compare both snapshots within the same Chicago date window.
+Source-specific markup, exclusions, IDs, and date interpretation stay in adapters.
+When an adapter filters before validating details, resolve a trustworthy date
+first and use the shared window check. An unreadable date still needs review.
+Heights calendars use this rule; other adapters retain their current parsing
+behavior rather than silently relaxing source-specific checks.
+
 | Source | Input and interpretation | Known limits |
 | --- | --- | --- |
 | Trylon | iCalendar UID, Chicago DTSTART, location and categories. Includes Heights screenings. The capture loader applies validated reviewed records by ID, preserving matched feed UIDs. | Indexed supplements restore September 29, sold-out status and the missing Friday Horrorthon session. They are offline evidence only. Ignores malformed feed timezone transitions, rejects recurrence rules, and omits calendar placeholder endings. |

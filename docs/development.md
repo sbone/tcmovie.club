@@ -3,6 +3,15 @@
 [Back to the project overview](../README.md). For an offline preview, start with
 the [local setup instructions](../README.md#run-it-locally).
 
+## Automated offline checks
+
+[GitHub Actions](../.github/workflows/check.yml) runs `npm ci` and
+`npm run check` on every pull request and push to `main`, using Node.js 24.
+The check builds TypeScript and runs the Node tests against saved fixtures and
+mock responses. It does not collect live theater data or deploy the site.
+The workflow grants only read access to repository contents and needs no secrets.
+Run the same two commands locally before opening a pull request.
+
 ## Offline preview options
 
 To preview another date window from the saved inputs:
@@ -36,7 +45,7 @@ HTTP caches, and source state stay outside Git. A commit failure stops the workf
 The commit is retained even if you decline deployment; this command does not push.
 Deployment still requires an explicit `y` or `yes` after the local preview.
 
-The manual workflow includes Trylon whenever at least 24 hours have passed since
+The manual workflow includes Trylon whenever at least 12 hours have passed since
 its last request; it can run at any time of day. All sources still honor robots,
 access pauses, request budgets, conditional requests, and backoff. Re-running
 within the wait period rebuilds from saved data without another Trylon request.
@@ -91,8 +100,11 @@ empty schedule, broken page/image, corrupt state, test failure, or overlapping
 automatic run prevents publication. A source failure returns exit status 1 even
 when the fallback site deployed; inspect `report.json` to distinguish this from a
 deployment failure. Verification failure after deployment is reported separately
-and does not automatically roll back. Request budgets, access pauses, and backoff
-are unchanged. Trylon's 24-hour rule can skip a run after a delayed request or DST
+and does not automatically roll back. Verification retries up to six times with
+five-second gaps and a distinct cache-busting URL; it never recollects or redeploys
+while waiting for production to propagate. Persistent mismatches produce a concise
+error rather than dumping the entire page. Request budgets, access pauses, and backoff
+are unchanged. Trylon's 12-hour rule can skip a run after a delayed request or DST
 transition; timestamps are never advanced simply because the job ran.
 
 New parse, validation, or schedule-anomaly failures also save `review.json` with
@@ -122,8 +134,13 @@ No LLM credentials or full environment are included in the bundle.
 [The launchd template](../deploy/club.tcmovie.refresh.plist) is configured for
 this checkout and Node 24.21.0. Review its paths before installing on another
 machine or upgrading Node. The time is the Mac's local timezone: set it to
-**America/Chicago** for 12:30 AM Central. The logged-in Mac must be available;
-launchd can coalesce missed runs after sleep rather than refreshing at midnight.
+**America/Chicago** for 12:30 AM Central.
+
+This is one scheduled run daily; a second manual collection remains allowed by
+the existing two-window policy (six requests per run, twelve per theater per
+Chicago date). Trylon remains limited to one cycle per 12 elapsed hours.
+The logged-in Mac must be available; launchd can coalesce missed runs after sleep
+rather than refreshing at midnight.
 Use one deployment computer and preserve `.state/live` there.
 
 First install dependencies with `npm ci`, authenticate Wrangler, and ensure
@@ -174,7 +191,7 @@ Optional positional arguments are state and output directories; defaults are
 
 The standalone collector keeps Trylon disabled by default.
 `TC_ENABLE_TRYLON=1` enables its calendar adapter in morning-only mode. It runs
-only from 7 AM to noon Chicago time and at least 24 hours after
+only from 7 AM to noon Chicago time and at least 12 hours after
 the source's last request. This can skip a morning after a delayed run or spring
 DST change. It never imports `reviewed.json` or search-indexed supplements.
 

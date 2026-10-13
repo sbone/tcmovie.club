@@ -7,6 +7,7 @@ import { parseTrylon } from "../dist/sources/trylon.js";
 import { instantSchema, sourceScreenings } from "../dist/domain.js";
 import { emptySource, acceptSource, readSource, writeSource } from "../dist/store.js";
 import { dedupe } from "../dist/dedupe.js";
+import { inDateWindow, scheduleDays } from "../dist/time.js";
 
 const result = parseTrylon(await readFile(new URL("./fixtures/trylon/calendar.ics", import.meta.url), "utf8"));
 assert.equal(result.kind, "ok");
@@ -54,6 +55,35 @@ test("invalid records, old captures, and disappearing future schedules do not re
     assert.equal(failed.state.lastGood, good.state.snapshot);
   }
   assert.equal(acceptSource(good, "trylon", result, instantSchema.parse("2026-09-28T00:00:00Z")).state.kind, "failed");
+});
+
+test("shared date windows include both boundaries and reject unreadable dates", () => {
+  const window = { firstDate: '2026-12-28', lastDate: '2027-01-10' };
+  assert.equal(scheduleDays, 14);
+  for (const day of ['2026-12-28', '2027-01-01', '2027-01-10']) assert.equal(inDateWindow(day, window), true);
+  for (const day of ['2026-12-27', '2027-01-11']) assert.equal(inDateWindow(day, window), false);
+  for (const day of ['TBA', '2026-02-30']) assert.throws(() => inDateWindow(day, window));
+});
+
+test("schedule-drop validation compares both snapshots in the same Chicago date window", () => {
+  const window = { firstDate: '2026-10-07', lastDate: '2026-10-20' };
+  const at = instantSchema.parse('2026-10-07T05:00:00Z');
+  const base = result.value.screenings[0];
+  const shows = (count, start, prefix) => Array.from({ length: count }, (_, i) => ({
+    ...base, id: `trylon:${prefix}-${i}`, sourceEventId: `${prefix}-${i}`,
+    start: { kind: 'screening', at: start, doorsAt: null },
+  }));
+  const inside = shows(6, '2026-10-21T01:00:00.000Z', 'inside'); // October 20 in Chicago
+  const outside = shows(20, '2026-10-21T06:00:00.000Z', 'outside'); // October 21 in Chicago
+  const parsed = screenings => ({ kind: 'ok', value: { screenings, diagnostics: [] } });
+  const old = acceptSource(emptySource(), 'trylon', parsed([...inside, ...outside]), at);
+  assert.equal(old.state.kind, 'ready');
+  assert.equal(acceptSource(old, 'trylon', parsed(inside), at, window).state.kind, 'ready');
+  assert.equal(acceptSource(old, 'trylon', parsed(inside), at).state.kind, 'failed', 'unbounded capture checks retain their existing policy');
+  const dropped = acceptSource(old, 'trylon', parsed(inside.slice(0, 2)), at, window);
+  assert.equal(dropped.state.kind, 'failed');
+  assert.equal(dropped.state.error.kind, 'anomaly');
+  assert.equal(dropped.state.lastGood, old.state.snapshot);
 });
 
 test("cross-source deduplication prefers the venue while preserving membership restrictions", () => {

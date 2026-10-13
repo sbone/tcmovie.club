@@ -11,7 +11,7 @@ import { screeningSchema, timeZone } from "./domain.js";
 import { errorMessage } from "./parse.js";
 import { venueNames } from "./site.js";
 import { acceptSource, emptySource } from "./store.js";
-import { chicagoDate, datesFrom } from "./time.js";
+import { chicagoDate, datesFrom, scheduleDays } from "./time.js";
 import { runAutomatic } from "./automation.js";
 
 function command(program: string, args: string[]): Promise<void> {
@@ -49,7 +49,7 @@ async function refresh() {
   const result = await collect({ contact: process.env.TC_CONTACT ?? "https://tcmovie.club",
     storage: resolve(".state/live"), output, savedTrylon, trylon: "manual" });
   const records = screeningSchema.array().parse(JSON.parse(await readFile(join(output, "screenings.json"), "utf8")));
-  const dates = new Set(datesFrom(chicagoDate(new Date().toISOString()), 14));
+  const dates = new Set(datesFrom(chicagoDate(new Date().toISOString()), scheduleDays));
   const stamp = new Intl.DateTimeFormat("en-US", { timeZone, dateStyle: "medium", timeStyle: "short" });
   console.log("\nNext 14 days — checked times in America/Chicago:");
   for (const source of result.sources) {

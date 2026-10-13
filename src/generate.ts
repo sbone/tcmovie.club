@@ -4,7 +4,7 @@ import { loadCapturedSource } from "./captures.js";
 import { acceptSource, failed, lastGood, readSource, writeSource } from "./store.js";
 import { dedupe } from "./dedupe.js";
 import { errorMessage } from "./parse.js";
-import { datesFrom } from "./time.js";
+import { datesFrom, scheduleDays } from "./time.js";
 import { writeSite } from "./site.js";
 import type { SourceInfo } from "./site.js";
 import type { Screening } from "./domain.js";
@@ -13,7 +13,7 @@ const firstDate = process.argv[2] ?? "2026-09-29";
 const captures = resolve(process.argv[3] ?? "test/fixtures");
 const output = resolve(process.argv[4] ?? "site");
 const storage = resolve(process.argv[5] ?? ".state/demo");
-const dates = datesFrom(firstDate, 14);
+const dates = datesFrom(firstDate, scheduleDays);
 const screenings: Screening[] = [];
 const sources: SourceInfo[] = [];
 const notes = {
@@ -44,5 +44,5 @@ for (const sourceId of sourceIdSchema.options) {
 }
 const combined = dedupe(screenings);
 await writeSite(output, dates, combined, sources);
-console.log(`Generated 14 date pages from ${combined.length} screenings across ${sourceIdSchema.options.length} saved sources. No network requests.`);
+console.log(`Generated ${dates.length} date pages from ${combined.length} screenings across ${sourceIdSchema.options.length} saved sources. No network requests.`);
 if (rejected) process.exitCode = 1;

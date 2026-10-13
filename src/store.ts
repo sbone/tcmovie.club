@@ -5,6 +5,8 @@ import { z } from "zod";
 import { instantSchema, sourceStateSchema } from "./domain.js";
 import type { IngestError, Instant, Result, Screening, SourceId, SourceState } from "./domain.js";
 import type { ParsedSource } from "./parse.js";
+import { chicagoDate, inDateWindow } from "./time.js";
+import type { DateWindow } from "./time.js";
 
 const observationSchema = z.strictObject({ firstSeenAt: instantSchema, lastSeenAt: instantSchema }).readonly();
 const storedSchema = z.strictObject({
@@ -29,7 +31,7 @@ export function failed(previous: StoredSource, error: IngestError): StoredSource
 const content = (records: readonly Screening[]) => JSON.stringify([...records]
   .sort((a, b) => a.id.localeCompare(b.id)).map(item => ({ ...item, tags: [...item.tags].sort() })));
 
-export function acceptSource(previous: StoredSource, sourceId: SourceId, result: Result<ParsedSource, string>, at: Instant): StoredSource {
+export function acceptSource(previous: StoredSource, sourceId: SourceId, result: Result<ParsedSource, string>, at: Instant, window?: DateWindow): StoredSource {
   const reject = (kind: IngestError["kind"], message: string) => failed(previous, { kind, message, at });
   if (result.kind === "err") return reject("parse", result.error);
   const invalid = result.value.diagnostics.filter(note => note.kind === "invalid");
@@ -40,8 +42,9 @@ export function acceptSource(previous: StoredSource, sourceId: SourceId, result:
   }
   const old = lastGood(previous.state);
   if (old && at < old.checkedAt) return reject("validation", "Refusing an older source capture");
-  const oldFuture = old?.screenings.filter(item => item.start.at >= at).length ?? 0;
-  const newFuture = records.filter(item => item.start.at >= at).length;
+  const relevant = (item: Screening) => item.start.at >= at && (!window || inDateWindow(chicagoDate(item.start.at), window));
+  const oldFuture = old?.screenings.filter(relevant).length ?? 0;
+  const newFuture = records.filter(relevant).length;
   if (!records.length || (oldFuture >= 5 && newFuture < oldFuture / 2)) {
     return reject("anomaly", "Empty schedule or major drop in future screenings; review required");
   }

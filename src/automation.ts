@@ -4,15 +4,35 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rmdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
+import { setTimeout as sleep } from "node:timers/promises";
 import { load } from "cheerio";
 import { collect } from "./collect.js";
 import { instantSchema, screeningSchema, sourceIdSchema } from "./domain.js";
 import { readHttp } from "./http.js";
 import { errorMessage } from "./parse.js";
 import { readSource, writeJson } from "./store.js";
-import { chicagoDate, datesFrom } from "./time.js";
+import { chicagoDate, datesFrom, scheduleDays } from "./time.js";
 
 const exec = promisify(execFile);
+
+export async function verifyProduction(output: string, run: string, request = fetch, pause: (ms: number) => Promise<unknown> = sleep) {
+  let error: unknown;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    try {
+      for (const file of ["index.html", "screenings.json", "sources.json"]) {
+        const path = file === "index.html" ? "/" : `/${file}`;
+        const response = await request(`https://tcmovie.club${path}?run=${encodeURIComponent(run)}&attempt=${attempt}`, {
+          headers: { "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(10_000),
+        });
+        assert.ok(response.ok, `Production HTTP ${response.status}: ${path}`);
+        assert.ok(await response.text() === await readFile(join(output, file), "utf8"), `Production mismatch: ${path}`);
+      }
+      return;
+    } catch (failure) { error = failure; }
+    if (attempt < 5) await pause(5_000);
+  }
+  throw error;
+}
 
 // The full test suite exercises browser filtering before every automatic run.
 export async function smokeSite(output: string, firstDate: string) {
@@ -21,12 +41,12 @@ export async function smokeSite(output: string, firstDate: string) {
   const sources = JSON.parse(await readFile(join(output, "sources.json"), "utf8"));
   assert.deepEqual(sources.map((source: { sourceId: string }) => source.sourceId).sort(), [...sourceIdSchema.options].sort());
   for (const source of sources) assert.ok(instantSchema.safeParse(source.checkedAt).success, `${source.sourceId}: no saved schedule`);
-  const dates = datesFrom(firstDate, 14);
+  const dates = datesFrom(firstDate, scheduleDays);
   for (const [index, date] of dates.entries()) {
     const html = await readFile(join(output, date, "index.html"), "utf8");
     const $ = load(html);
     assert.match($("h1").text(), /Screenings on/);
-    assert.equal($("nav a").length, 14);
+    assert.equal($("nav a").length, dates.length);
     assert.equal($("button[data-theater][aria-pressed=true]").length, 7);
     assert.equal($(".screenings li").length, screenings.filter(show => chicagoDate(show.start.at) === date).length);
     assert.equal($("link[rel=canonical]").attr("href"), `https://tcmovie.club/${date}/`);
@@ -44,7 +64,7 @@ export async function smokeSite(output: string, firstDate: string) {
       assert.equal(home(".screenings li").length, $(".screenings li").length);
     }
   }
-  return { firstDate, lastDate: dates[13], pages: dates.length, screenings: screenings.length };
+  return { firstDate, lastDate: dates.at(-1), pages: dates.length, screenings: screenings.length };
 }
 
 export async function queryReview(command: string, bundle: string, destination: string) {
@@ -122,12 +142,7 @@ export async function runAutomatic(deploy: boolean) {
       report.deployed = true;
       report.status = "deployed";
       await writeJson(directory, "report.json", report);
-      for (const file of ["index.html", "screenings.json", "sources.json"]) {
-        const path = file === "index.html" ? "/" : `/${file}`;
-        const response = await fetch(`https://tcmovie.club${path}?run=${encodeURIComponent(startedAt)}`, { signal: AbortSignal.timeout(20_000) });
-        assert.ok(response.ok, `Production HTTP ${response.status}: ${path}`);
-        assert.equal(await response.text(), await readFile(join(output, file), "utf8"), `Production mismatch: ${path}`);
-      }
+      await verifyProduction(output, startedAt);
       report.productionVerified = true;
     }
     if (result.failed) process.exitCode = 1; // Publication may succeed with clearly labeled last-good data.
