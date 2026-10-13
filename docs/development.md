@@ -3,6 +3,15 @@
 [Back to the project overview](../README.md). For an offline preview, start with
 the [local setup instructions](../README.md#run-it-locally).
 
+## Automated offline checks
+
+[GitHub Actions](../.github/workflows/check.yml) runs `npm ci` and
+`npm run check` on every pull request and push to `main`, using Node.js 24.
+The check builds TypeScript and runs the Node tests against saved fixtures and
+mock responses. It does not collect live theater data or deploy the site.
+The workflow grants only read access to repository contents and needs no secrets.
+Run the same two commands locally before opening a pull request.
+
 ## Offline preview options
 
 To preview another date window from the saved inputs:
