@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "prebuild": "node scripts/clean.mjs --build",
     "build": "tsc",
+    "clean": "node scripts/clean.mjs --generated",
+    "clean:history": "node scripts/clean.mjs --history",
     "test": "npm run build && node --test test/*.test.mjs",
     "check": "npm test",
     "generate": "npm run build && node dist/generate.js",
     "collect": "npm run build && node --env-file-if-exists=.env.local dist/collect.js",
-    "refresh": "npm run check && node --env-file-if-exists=.env.local dist/refresh.js",
+    "refresh": "npm run check && npm run clean:history && node --env-file-if-exists=.env.local dist/refresh.js",
     "refresh:publish": "npm run refresh -- --commit",
     "refresh:auto": "npm run refresh -- --auto"
   },

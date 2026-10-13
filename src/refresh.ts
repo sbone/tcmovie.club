@@ -1,6 +1,6 @@
 import { execFile, spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-import { mkdir, mkdtemp, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
@@ -105,6 +105,7 @@ async function refresh() {
     stop();
     process.off("SIGINT", interrupt);
     process.off("SIGTERM", interrupt);
+    await writeFile(join(output, "..", "finished.json"), JSON.stringify({ finishedAt: new Date().toISOString() }));
   }
 }
 

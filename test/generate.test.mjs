@@ -7,6 +7,24 @@ import { gzipSync } from "node:zlib";
 import { test } from "node:test";
 import { load } from "cheerio";
 import { smokeSite } from "../dist/automation.js";
+import { writeSite } from "../dist/site.js";
+
+test("regenerating an output directory removes obsolete generated pages and images only", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "tc-output-"));
+  try {
+    await writeSite(directory, ["2026-10-12", "2026-10-13"], [], []);
+    await writeFile(join(directory, "notes.txt"), "keep custom files");
+    await writeFile(join(directory, "social/2026-10-13-000000000000.png"), "obsolete hash");
+    await writeFile(join(directory, "social/custom.png"), "keep custom images");
+    await writeSite(directory, ["2026-10-13", "2026-10-14"], [], []);
+    assert.deepEqual((await readdir(directory)).filter(name => /^2026-/.test(name)).sort(), ["2026-10-13", "2026-10-14"]);
+    const images = await readdir(join(directory, "social"));
+    assert.equal(images.filter(name => /^2026-/.test(name)).length, 2);
+    assert.ok(!images.includes("2026-10-13-000000000000.png"));
+    assert.equal(await readFile(join(directory, "notes.txt"), "utf8"), "keep custom files");
+    assert.equal(await readFile(join(directory, "social/custom.png"), "utf8"), "keep custom images");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 test("offline build combines seven sources and retains a venue when its next import breaks", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-generate-"));
