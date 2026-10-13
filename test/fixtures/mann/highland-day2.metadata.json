@@ -1,0 +1,6 @@
+{
+  "sourceUrl": "https://www.manntheatres.com/?theatre=highland-1-2&day=2",
+  "responseAt": "2026-10-12T15:11:40.000Z",
+  "date": "2026-10-14",
+  "notes": "Real live HTTP capture reduced to title, date context, Now playing cards and date picker. Scripts and unrelated sections omitted; full response retained in ignored verification state."
+}

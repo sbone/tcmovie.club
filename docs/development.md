@@ -17,13 +17,15 @@ Run the same two commands locally before opening a pull request.
 To preview another date window from the saved inputs:
 
 ```sh
-npm run generate -- 2027-02-24
+npm run generate -- 2026-10-12
 ```
 
 Optional positional arguments are start date, capture directory, output directory,
 and state directory; defaults are `2026-09-29`, `test/fixtures`, `site`, and
 `.state/demo`. Generated output and state are ignored by Git. A different date
-window does not fetch new data.
+window does not fetch new data. The original five sources have saved schedules
+for parts of September 29–October 12; the Mann loader uses October 14 captures.
+Dates outside those captures may be empty even when the theater has published screenings.
 
 ## Collector
 
@@ -166,19 +168,11 @@ the reports, logs, and exit status.
 
 ### Movie ratings experiment (paused)
 
-Ratings, their checkbox, and IMDb links are currently omitted from generated pages.
-Old `?ratings=1` links cannot enable them. Refresh and collection make no OMDb calls,
-even when `OMDB_API_KEY` is set. The local cache and tested matching code in
-`src/ratings.ts` are retained for investigation.
-
-The first pass conflated an unmatched movie with a missing score. Before restoring
-ratings, distinguish those outcomes and improve film identity using release years
-or reviewed IMDb IDs. Explicit trailing years and format suffixes are supported;
-ambiguous remakes, incomplete search results, and alternate titles remain unresolved.
-
-Keep your key in `.env.local`, which Git ignores. The Node 22.9+ built-in environment
-file loader still runs for refresh/collect commands; exported variables take precedence.
-The committed `.env.example` contains only an empty key placeholder.
+Generated pages omit ratings and IMDb links, and refresh/collection make no OMDb
+calls. Old `?ratings=1` links cannot enable them. Matching code and its tests remain
+in `src/ratings.ts`; before restoring ratings, distinguish unmatched films from
+missing scores and improve identity using release years or reviewed IMDb IDs.
+Keep any API key in ignored `.env.local`.
 
 ### Collection without the interactive preview
 
@@ -187,14 +181,16 @@ TC_CONTACT='https://your-public-project.example' npm run collect
 ```
 
 Replace the example with your public project URL or contact email. The command
-fetches Heights, Riverview, Parkway, and The Main Cinema, retains good data on failure, and writes
-14 date pages starting today in Chicago, `screenings.json`, and `sources.json`.
+fetches Heights, Riverview, Parkway, The Main Cinema, Grandview, and Highland,
+retains good data on failure, and writes 14 date pages starting today in Chicago,
+`screenings.json`, and `sources.json`.
 It uses ordinary HTML/calendar/JSON parsers, with no AI calls or fixture corrections.
 Optional positional arguments are state and output directories; defaults are
 `.state/live` and `site`. Keep live state separate from `.state/demo`.
 
 The standalone collector keeps Trylon disabled by default.
-`TC_ENABLE_TRYLON=1` enables its calendar adapter in morning-only mode. It runs only from 7 AM to noon Chicago time and at least 12 hours after
+`TC_ENABLE_TRYLON=1` enables its calendar adapter in morning-only mode. It runs
+only from 7 AM to noon Chicago time and at least 12 hours after
 the source's last request. This can skip a morning after a delayed run or spring
 DST change. It never imports `reviewed.json` or search-indexed supplements.
 
@@ -218,6 +214,13 @@ robots check), using `start_date`, exclusive `end_date`, and `_locale=user`.
 Only events labeled Theater 1–5 are assigned to The Main. The feed's UTC `start`
 field disagrees with its displayed clock times, so the adapter resolves each
 `date` and `start_time` in Chicago time. Other venues are excluded.
+
+Grandview and Highland share Mann's host and run sequentially with shared request
+spacing. Each source fetches today's page and selectable future dates within its
+six-request budget, including robots checks. The inspected picker offered seven
+days, with some unavailable dates; this is not a guaranteed publication window.
+Unfetched or unpublished dates remain unverified, rather than confirmed empty.
+
 Only currently discovered pages contribute. Freshness reflects the oldest response
 used, and uncovered pages or uncertain times produce diagnostics, not invented data.
 The budget does not guarantee complete coverage in one run.
@@ -228,22 +231,17 @@ source retains its last good snapshot while others update. Failures exit nonzero
 after writing fallback pages. State corruption stops publication. Raw HTTP caches
 remain under `.state/live/http`, outside the published output.
 
-Schedule the built command at 7 AM and 7 PM **America/Chicago** on the deployment
-host. For cron implementations supporting `CRON_TZ`, a template is:
+For scheduled publication, use the [automatic refresh workflow](#unattended-daily-refresh)
+and [Mac schedule](#scheduling-on-this-mac-at-1230-am) above. The standalone
+collector writes local output and does not deploy it.
 
-```cron
-CRON_TZ=America/Chicago
-TC_CONTACT=https://your-public-project.example
-0 7,19 * * * cd /absolute/path/to/tc-movie-cal && /absolute/path/to/node --env-file-if-exists=.env.local dist/collect.js
-```
-
-Build once with `npm run build`; set real paths/contact before installing this.
 The collector allows at most one attempt per morning/evening window and rejects
 overlapping runs with `.state/live/collect.lock`. After a process crash, remove
 that empty lock directory only after confirming no collector is running. To resume
 a reviewed access failure, clear `paused` in the source's HTTP state; preserve its
-request counters and retry timestamp. No scheduler or deployment is installed by
-this repository. Source terms/access review remains necessary before enabling the job.
+request counters and retry timestamp. The launchd template is opt-in; checking out
+this repository does not install a scheduler. Source terms/access review remains
+necessary before enabling the job.
 
 ## Implementation
 
@@ -252,10 +250,11 @@ IDs, URLs, and instants. Zod schemas decode unknown data and supply the inferred
 TypeScript types. A tagged `Result` makes parser failures explicit; `null` means
 unknown metadata without adding a custom Maybe abstraction.
 
-Five pure [source parsers](../src/sources/README.md) feed one HTML renderer from either
-the collector or offline captures. Calendar
-syntax uses `ical.js`, HTML uses Cheerio, and Chicago local times use Temporal's
-IANA timezone rules. Ambiguous or nonexistent local times are rejected. The pages
+Pure [source parsers](../src/sources/README.md) cover seven sources and feed one
+HTML renderer from either the collector or offline captures. Grandview and Highland
+share the Mann parser. Calendar syntax uses `ical.js`, HTML uses Cheerio, and Chicago
+local times use Temporal's IANA timezone rules. Ambiguous or nonexistent local
+times are rejected. The pages
 use ordinary links and inline CSS, with one small inline script for theater
 filters and no visible images or web fonts.
 Text is escaped and generation enforces a 25 KB compressed HTML budget per page.
@@ -289,7 +288,9 @@ All screenings are rendered into each date page. Native toggle buttons hide
 unselected venues locally, using `?theaters=trylon,heights` for a selection.
 Omitting the parameter selects all venues; `?theaters=` selects none. Unknown
 IDs are ignored. Date links retain the selection, and browser Back/Forward
-restores it. Without JavaScript, the full schedule remains visible.
+restores it. Without JavaScript, the full schedule remains visible. On narrow
+screens, smaller labels and tighter gaps keep the theater names visible with
+44px touch targets. “Show all” sits beside the heading.
 
 The self-contained function in [filters.ts](../src/filters.ts) is compiled and
 embedded by the renderer, with no extra browser request or runtime dependency.
@@ -307,8 +308,10 @@ gradient; forced-colors mode uses the system palette.
 
 Generated pages include Open Graph and Twitter card metadata directly in HTML.
 Each date gets a 1200 × 630 PNG with its date, count of non-cancelled screenings,
-and all five covered theaters, including those without listings that day. The homepage uses the first date in the
-published schedule. Descriptions use “See films on” and Central Time wording.
+and badges for all seven theaters in two rows, including those without listings
+that day. Descriptions name the theaters with active screenings, including
+Grandview and Highland. The homepage uses the first date
+in the published schedule. Descriptions use “See films on” and Central Time wording.
 
 The [SVG template](../assets/social-card.svg) is rendered at build time with
 `@resvg/resvg-js`, using installed system fonts (Helvetica/Arial and Georgia where
@@ -325,41 +328,24 @@ and PNG dimensions. Check social-app previews after deployment.
 
 ## Coverage and remaining work
 
-The reviewed offline window is **September 29–October 12, 2026**, with 270 showings
-after removing cross-listed duplicates. Input coverage is now:
+The default offline preview covers **September 29–October 12, 2026**. Mann's saved
+October 14 showtimes fall outside that default window; choose a later start date
+to see them. All fixture previews remain marked stale. Replaying a capture does
+not establish current coverage or advance its timestamp.
 
-| Source | Offline evidence |
-| --- | --- |
-| Trylon | Saved calendar plus reviewed indexed film-page corrections: September 29 screenings, a sold-out flag, and all three Horrorthon sessions. |
-| Heights | Homepage plus September and October calendars, covering the full preview window. |
-| Riverview | Daily listings through October 1, an explicitly unscheduled October 2 page, film details, and Special Screenings announcements. |
-| Parkway | Movie listing plus all seven event detail schedules in the preview window, including both HUMP showings. |
-| The Main Cinema | One 14-day calendar JSON snapshot: 194 Theater 1–5 showings, with five events at other venues excluded. |
+See the [source adapter table](../src/sources/README.md) for each parser's inputs
+and limits, and [source research](source-research.md) for capture provenance,
+access findings, and the October 12 Mann live check. Fixture metadata records
+individual capture dates. Indexed Trylon corrections are offline evidence and
+never enter live collection.
 
-The full index also retains published dates outside the preview window. Unknown
-times are not invented: Riverview's Canoe Dig It? announcement has no clock time
-and remains a parser diagnostic; later Parkway listings retain uncertain event
-starts. Calendar placeholder endings are omitted; Horrorthon's explicit program
-endings come from its reviewed film page.
+Known gaps include incomplete future schedules, Riverview announcements without
+clock times, and uncertain Parkway film starts. Live Mann acquisition and replay
+were checked locally; automated
+tests simulate HTTP and do not establish current source access or validate a
+production deployment.
 
-All preview pages remain marked stale. Indexed Trylon supplements are reviewed
-offline evidence, not a production acquisition method or proof of current coverage.
-No Trylon HTTP requests were added. See [source research](source-research.md)
-and fixture metadata for capture provenance, bounded request accounting, and
-remaining access constraints.
-
-The intended collection schedule is one server job at **7 AM and 7 PM America/Chicago**. It
-collects within each source's request budget, retains good data on failure, and
-publishes static HTML/JSON with source timestamps. Every visitor request serves
-published files; there is no manual refresh or visitor-triggered collection.
-Trylon is eligible at the morning run only, with at least 12 hours between requests
-as authorized on October 6; the feed advertises a 24-hour refresh interval. More restrictive source rules always take precedence.
-
-Before enabling the job, configure the fetcher identity and validate source coverage
-and access. The collector is implemented and tested offline; live acquisition and
-deployment have not been validated by the automated tests. The fixture preview
-remains entirely offline.
-
-The [original project brief](../twin-cities-movie-screenings-codex-handoff.md) remains
-the broader roadmap. Raw research responses are retained locally under `.research/`;
-committed HTML fixtures remove executable scripts and form tokens.
+The [original project brief](../twin-cities-movie-screenings-codex-handoff.md) is a
+historical roadmap; this guide and the current code describe implemented behavior.
+Raw research responses remain in ignored `.research/`; committed HTML fixtures
+omit executable scripts and form tokens.

@@ -11,6 +11,7 @@ import { parseRiverview, parseRiverviewSpecials } from "./riverview.js";
 import { parseParkway } from "./parkway.js";
 import { parseTrylon } from "./trylon.js";
 import { parseMain } from "./main.js";
+import { parseMann, mannDays } from "./mann.js";
 
 type Http = ReturnType<typeof createHttp>;
 
@@ -93,6 +94,24 @@ export async function collectSource(source: SourceId, http: Http, firstDate: str
       }).map(item => new URL(item.eventUrl).pathname))];
       const details = await refresh(paths);
       results.push(parseParkway(listing, details));
+      break;
+    }
+    case "grandview":
+    case "highland": {
+      const venue = source === "grandview" ? "grandview-1-2" : "highland-1-2";
+      const path = (day: number) => `/?theatre=${venue}&day=${day}`;
+      const first = await get(path(0));
+      results.push(parseMann(first, source, firstDate));
+      const available = mannDays(first).filter(day => day > 0 && day < scheduleDays);
+      // One robots check plus at most five date pages per source per run.
+      const additional = available.slice(0, Math.max(0, http.remaining()));
+      for (const day of additional) {
+        const date = dates[day]!;
+        results.push(parseMann(await get(path(day)), source, date));
+      }
+      if (available.length > additional.length || available.length < scheduleDays - 1) {
+        warn(`Mann published ${available.length + 1} selectable dates; other dates are unverified.`);
+      }
       break;
     }
     case "main": {

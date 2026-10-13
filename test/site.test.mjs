@@ -20,7 +20,7 @@ test("HTML renders complete listings and accessible theater toggles", () => {
   const $ = load(html);
   assert.equal($("img, script[src], link:not([rel=canonical])").length, 0);
   assert.equal($("script").length, 1);
-  assert.equal($("#theater-filters[hidden] button[data-theater][aria-pressed=true]").length, 5);
+  assert.equal($("#theater-filters[hidden] button[data-theater][aria-pressed=true]").length, 7);
   assert.equal($(".screenings li[data-venue=trylon]").length, 1);
   assert.equal($(".screenings li[data-venue=trylon] .venue-badge").text(), "Trylon");
   assert.match($("noscript").text(), /All theaters are shown/);
@@ -83,13 +83,13 @@ test("theme text and theater states retain contrast against surfaces and gradien
     return (values[1] + .05) / (values[0] + .05);
   };
   assert.equal(themes.length, 2);
-  assert.equal(venues.length, 10);
+  assert.equal(venues.length, 14);
   const gradientTop = css.match(/linear-gradient\(180deg,(#[a-f0-9]{6})/)[1];
   for (const [index, theme] of themes.entries()) {
     const backgrounds = index ? [theme.paper, gradientTop] : [theme.paper];
     const pairs = backgrounds.flatMap(background => [[theme.ink, background], [theme.link, background]]);
     pairs.push([theme.link, theme.hover], [theme["selected-ink"], theme["selected-bg"]]);
-    for (const venue of venues.slice(index * 5, index * 5 + 5)) {
+    for (const venue of venues.slice(index * 7, index * 7 + 7)) {
       pairs.push([venue["venue-color"], venue["venue-tint"]], [theme["on-venue"], venue["venue-color"]]);
       for (const background of backgrounds) pairs.push([venue["venue-color"], background]);
     }

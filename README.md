@@ -24,22 +24,24 @@ The site follows your system's light or dark appearance, with readable colors,
 clear selected states, and keyboard-friendly controls. No images or web fonts
 need to load before you can find a film.
 
-## Five fine theaters
+## Seven fine theaters
 
 - [Trylon Cinema](https://www.trylon.org/)
 - [Heights Theater](https://www.heightstheater.com/)
 - [The Parkway Theater](https://theparkwaytheater.com/)
 - [Riverview Theater](https://www.riverviewtheater.com/)
 - [The Main Cinema / MSP Film Society](https://mspfilm.org/)
+- [Mann Grandview 1 & 2](https://www.manntheatres.com/?theatre=grandview-1-2&day=0)
+- [Mann Highland 1 & 2](https://www.manntheatres.com/?theatre=highland-1-2&day=0)
 
 Times are in **Central Time**. Members-only screenings and uncertain start times
 are labeled. Check the theater's own listing for the latest details and tickets.
 
 ## Keeping it current, keeping it considerate
 
-The goal is **daily updates**. Refreshes are published manually for now, and each
-theater's last-checked time is visible on the site. If an update fails, the site
-keeps the last good schedule and shows when it may be stale.
+The goal is **daily updates**. Refreshes support manual preview and opt-in daily
+automation; each theater's last-checked time is visible on the site. If an update
+fails, the site keeps the last good schedule and shows when it may be stale.
 
 Being a good web citizen is part of the project. Schedule collection happens
 separately from browsing, with small request limits, saved results, and time

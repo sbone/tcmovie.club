@@ -50,7 +50,7 @@ test("automatic refresh writes a zero-request report and records deployment fail
     const storage = join(directory, ".state/live");
     execFileSync(process.execPath, [resolve("dist/generate.js"), date, resolve("test/fixtures"), join(directory, "seed-site"), storage]);
     await mkdir(join(storage, "http"));
-    for (const source of ["trylon", "heights", "parkway", "riverview", "main"]) {
+    for (const source of ["trylon", "heights", "parkway", "riverview", "main", "grandview", "highland"]) {
       await writeFile(join(storage, "http", `${source}.json`), JSON.stringify({ slot }));
     }
     runtime.fetch = async () => { throw new Error("Unexpected network request in offline automation test"); };

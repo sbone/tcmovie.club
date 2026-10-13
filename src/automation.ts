@@ -47,7 +47,7 @@ export async function smokeSite(output: string, firstDate: string) {
     const $ = load(html);
     assert.match($("h1").text(), /Screenings on/);
     assert.equal($("nav a").length, dates.length);
-    assert.equal($("button[data-theater][aria-pressed=true]").length, 5);
+    assert.equal($("button[data-theater][aria-pressed=true]").length, 7);
     assert.equal($(".screenings li").length, screenings.filter(show => chicagoDate(show.start.at) === date).length);
     assert.equal($("link[rel=canonical]").attr("href"), `https://tcmovie.club/${date}/`);
     assert.equal($("meta[property='og:url']").attr("content"), `https://tcmovie.club/${date}/`);

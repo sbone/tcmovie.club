@@ -10,7 +10,7 @@ function page(search = "") {
     addEventListener(name, callback) { this.listeners[name] = callback; },
     click() { this.listeners.click(); },
   });
-  const buttons = ["trylon", "heights", "parkway", "riverview", "main"].map(theater => element({ theater }));
+  const buttons = ["trylon", "heights", "parkway", "riverview", "main", "grandview", "highland"].map(theater => element({ theater }));
   const rows = ["trylon", "heights", "main"].map(venue => element({ venue }));
   const links = [{ href: "/2026-09-30/" }];
   const status = element(), reset = element();

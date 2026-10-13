@@ -11,7 +11,7 @@ import { errorMessage } from "./parse.js";
 export const origins = {
   trylon: "https://www.trylon.org", heights: "https://www.heightstheater.com",
   riverview: "https://www.riverviewtheater.com", parkway: "https://theparkwaytheater.com",
-  main: "https://mspfilm.org",
+  main: "https://mspfilm.org", grandview: "https://www.manntheatres.com", highland: "https://www.manntheatres.com",
 } as const;
 export const dayMs = 86_400_000;
 // The package exports a CJS function but declares an ESM default export.
@@ -62,6 +62,13 @@ function allowedPath(source: SourceId, url: URL): boolean {
       && /^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end)
       && days > 0 && days <= 32 && q.get("_locale") === "user";
   }
+  if (source === "grandview" || source === "highland") {
+    const params = url.searchParams;
+    const venue = source === "grandview" ? "grandview-1-2" : "highland-1-2";
+    const day = params.get("day");
+    return url.pathname === "/" && params.size === 2 && params.get("theatre") === venue
+      && day !== null && /^(?:[0-9]|1[0-3])$/.test(day);
+  }
   if (url.search) return false;
   switch (source) {
     case "trylon": return url.pathname === "/feed/my-calendar-google/";
@@ -72,7 +79,7 @@ function allowedPath(source: SourceId, url: URL): boolean {
 }
 
 export function createHttp(source: SourceId, agent: string, state: HttpState,
-  save: () => Promise<void>, clock: Runtime = runtime) {
+  save: () => Promise<void>, clock: Runtime = runtime, hostRequests = new Map<string, number>()) {
   let count = 0;
   let robots: ReturnType<typeof robotsParser> | undefined;
   const origin = origins[source];
@@ -91,9 +98,11 @@ export function createHttp(source: SourceId, agent: string, state: HttpState,
     if (state.day !== today) { state.day = today; state.requestsToday = 0; }
     if (!remaining()) throw new CollectionError("Source request budget exhausted");
     const delay = Math.max(10_000, (robots?.getCrawlDelay(agent) ?? 0) * 1000);
-    const wait = state.lastRequestAt + delay - clock.now();
+    const requestAt = Math.max(state.lastRequestAt + delay, (hostRequests.get(origin) ?? 0) + delay, clock.now());
+    const wait = requestAt - clock.now();
     if (!Number.isFinite(delay)) throw new CollectionError("Invalid robots crawl delay", "access");
     if (wait > 60_000) throw new CollectionError("Waiting for source crawl delay", "network", state.lastRequestAt + delay);
+    hostRequests.set(origin, requestAt);
     if (wait > 0) await clock.sleep(wait);
     const previous = state.pages[url.href];
     const headers: Record<string, string> = { "User-Agent": agent, Accept: kind === "calendar" ? "text/calendar" : kind === "json" ? "application/json" : kind === "robots" ? "text/plain" : "text/html" };
