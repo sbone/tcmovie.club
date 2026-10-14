@@ -4,6 +4,7 @@ export function initTheaterFilters() {
   const buttons = [...controls.querySelectorAll<HTMLButtonElement>("button[data-theater]")];
   const ids = buttons.map(button => button.dataset.theater!);
   const rows = [...document.querySelectorAll<HTMLLIElement>(".screenings li[data-venue]")];
+  const pins = [...document.querySelectorAll<HTMLButtonElement>(".map-pin[data-venue]")];
   const links = [...document.querySelectorAll<HTMLAnchorElement>('nav[aria-label="Dates"] a')];
   const status = document.querySelector<HTMLElement>("#filter-status")!;
   const reset = controls.querySelector<HTMLButtonElement>("button[data-reset]")!;
@@ -21,6 +22,7 @@ export function initTheaterFilters() {
   const show = () => {
     for (const button of buttons) button.setAttribute("aria-pressed", String(selected.has(button.dataset.theater!)));
     for (const row of rows) row.hidden = !selected.has(row.dataset.venue!);
+    for (const pin of pins) pin.dataset.selected = String(selected.has(pin.dataset.venue!));
     for (const link of links) link.href = filterUrl(new URL(link.href, location.href)).href;
     reset.disabled = selected.size === ids.length;
     const count = rows.filter(row => !row.hidden).length;

@@ -16,6 +16,8 @@ test("regenerating an output directory removes obsolete generated pages and imag
     await writeFile(join(directory, "notes.txt"), "keep custom files");
     await writeFile(join(directory, "social/2026-10-13-000000000000.png"), "obsolete hash");
     await writeFile(join(directory, "social/custom.png"), "keep custom images");
+    await writeFile(join(directory, "maps/theaters-000000000000.svg"), "obsolete map");
+    await writeFile(join(directory, "maps/custom.svg"), "keep custom maps");
     await writeSite(directory, ["2026-10-13", "2026-10-14"], [], []);
     assert.deepEqual((await readdir(directory)).filter(name => /^2026-/.test(name)).sort(), ["2026-10-13", "2026-10-14"]);
     const images = await readdir(join(directory, "social"));
@@ -23,6 +25,16 @@ test("regenerating an output directory removes obsolete generated pages and imag
     assert.ok(!images.includes("2026-10-13-000000000000.png"));
     assert.equal(await readFile(join(directory, "notes.txt"), "utf8"), "keep custom files");
     assert.equal(await readFile(join(directory, "social/custom.png"), "utf8"), "keep custom images");
+    const maps = await readdir(join(directory, "maps"));
+    assert.equal(maps.filter(name => /^theaters-/.test(name)).length, 1);
+    assert.ok(!maps.includes("theaters-000000000000.svg"));
+    assert.equal(await readFile(join(directory, "maps/custom.svg"), "utf8"), "keep custom maps");
+    const home = load(await readFile(join(directory, "index.html"), "utf8"));
+    const date = load(await readFile(join(directory, "2026-10-14/index.html"), "utf8"));
+    const mapPath = home(".map-frame").attr("data-src");
+    assert.equal(date(".map-frame").attr("data-src"), mapPath, "all dates share one cacheable map");
+    assert.match(await readFile(join(directory, mapPath), "utf8"), /<svg/);
+    assert.match(await readFile(join(directory, "_headers"), "utf8"), /\/maps\/\*\n  Cache-Control: public, max-age=31536000, immutable/);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 

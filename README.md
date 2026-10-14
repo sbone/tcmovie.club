@@ -24,6 +24,9 @@ The site follows your system's light or dark appearance, with readable colors,
 clear selected states, and keyboard-friendly controls. No images or web fonts
 need to load before you can find a film.
 
+An optional theater map loads only when opened. It shows all seven locations,
+with street context and selectable addresses and website links for each theater.
+
 ## Seven fine theaters
 
 - [Trylon Cinema](https://www.trylon.org/)
@@ -86,6 +89,7 @@ The site generator writes the HTML pages ahead of time. Saved examples support
 parser improvements without repeated visits to the source sites.
 
 - [Development guide](docs/development.md): local setup, collection, and publishing.
+- [Theater locations](docs/theater-locations.md): map coordinates, addresses, and geographic center.
 - [Manual refresh](docs/development.md#manual-refresh-preview-and-deployment):
   check, collect, preview, and choose whether to deploy.
 - [Daily automation](docs/development.md#unattended-daily-refresh): unattended

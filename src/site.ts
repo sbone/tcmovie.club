@@ -7,6 +7,7 @@ import { gzipSync } from "node:zlib";
 import type { Diagnostic } from "./parse.js";
 import { initTheaterFilters } from "./filters.js";
 import { socialCard } from "./social.js";
+import { initTheaterMap, mapPoint, theaterLocations, theaterMapPath, theaterMapSvg } from "./theater-map.js";
 
 export const venueNames = {
   trylon: "Trylon", heights: "Heights", parkway: "Parkway", riverview: "Riverview", main: "The Main Cinema", grandview: "Grandview", highland: "Highland",
@@ -44,6 +45,10 @@ export async function writeSite(output: string, dates: readonly string[], screen
   };
   await mkdir(output, { recursive: true });
   await mkdir(`${output}/social`, { recursive: true });
+  if (gzipSync(theaterMapSvg).length > 50000) throw new Error("Theater map exceeds compressed 50 KB budget");
+  await mkdir(`${output}/maps`, { recursive: true });
+  await writeFile(`${output}${theaterMapPath}`, theaterMapSvg);
+  await writeFile(`${output}/_headers`, "/maps/*\n  Cache-Control: public, max-age=31536000, immutable\n");
   const images = new Set<string>();
   for (const date of dates) {
     const card = socialCard(date, screenings.filter(item => chicagoDate(item.start.at) === date));
@@ -67,6 +72,11 @@ export async function writeSite(output: string, dates: readonly string[], screen
   for (const entry of await readdir(`${output}/social`, { withFileTypes: true })) {
     if (entry.isFile() && /^\d{4}-\d{2}-\d{2}-[a-f0-9]{12}\.png$/.test(entry.name) && !images.has(entry.name)) {
       await rm(`${output}/social/${entry.name}`);
+    }
+  }
+  for (const entry of await readdir(`${output}/maps`, { withFileTypes: true })) {
+    if (entry.isFile() && /^theaters-[a-f0-9]{12}\.svg$/.test(entry.name) && `/maps/${entry.name}` !== theaterMapPath) {
+      await rm(`${output}/maps/${entry.name}`);
     }
   }
 }
@@ -137,6 +147,8 @@ body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem
 #theater-filters legend{box-sizing:border-box;width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem}#theater-filters [data-reset]{font:inherit;font-weight:400;color:var(--link);background:transparent;border:0;min-height:44px;padding:0 .4rem;text-decoration:underline;text-underline-offset:.2em;cursor:pointer}#theater-filters [data-reset]:disabled{opacity:.55;cursor:default;text-decoration:none}
 @media(max-width:480px){#theater-filters{margin-top:.6rem}.theater-buttons{gap:.35rem}.theater-buttons button{font-size:.8rem;padding:.3rem .45rem}.theater-buttons button[data-theater]::before{width:.85em}}
 .theater-buttons button:not(:disabled):active{box-shadow:inset 0 0 0 2px currentColor}
+#theater-map{margin:.25rem 0 .75rem}#theater-map>summary{color:var(--link);cursor:pointer;min-height:44px;align-content:center;font-size:.9rem;width:fit-content}#theater-map[open]>summary{margin-bottom:.35rem}.map-close,#theater-map[open] .map-open{display:none}#theater-map[open] .map-close{display:inline}.map-frame{position:relative;aspect-ratio:1;border:1px solid var(--rule);border-radius:.4rem;overflow:hidden;background:#f3f1e8}.map-frame img{display:block;width:100%;height:100%}.map-pin{border:0;padding:0;background:transparent;font-family:inherit;cursor:pointer;position:absolute;display:flex;align-items:center;gap:4px;transform:translate(-7px,-50%);min-height:44px;white-space:nowrap;text-decoration:none;font-size:clamp(12px,2.6vw,16px);font-weight:700;color:#20231f}.map-pin::before{content:"";width:12px;height:12px;flex:none;border:2px solid #faf9f4;box-sizing:border-box;border-radius:50%;background:var(--venue-color);box-shadow:0 0 0 1px #20231f}.map-pin span{background:#faf9f4;padding:1px 5px;border:1px solid #b0b4a7;border-radius:3px}.map-pin[data-venue=trylon],.map-pin[data-venue=parkway],.map-pin[data-venue=main]{flex-direction:row-reverse;transform:translate(calc(-100% + 7px),-50%)}.map-pin[data-venue=grandview] span{transform:translateY(-14px)}.map-pin[data-selected=false]{color:#64665c;font-weight:400}.map-pin[data-selected=false] span{background:#e8e6dd}.map-pin[data-selected=false]::before{opacity:.5}.map-pin:focus-visible,.map-pin:hover{opacity:1;z-index:1}.map-pin:focus-visible{outline-color:#20231f}.map-status,.map-credit{margin:.4rem 0;font-size:.8rem}.map-retry{font:inherit;min-height:44px;color:var(--link);background:var(--paper);border:1px solid var(--rule);border-radius:.3rem;padding:.3rem .7rem}.map-addresses{list-style:none;padding:0;margin:.75rem 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.5rem 1rem;font-size:.8rem}.map-addresses span{display:block}
+#map-theater-dialog{box-sizing:border-box;width:min(28rem,calc(100% - 2rem));padding:1.25rem;border:1px solid var(--rule);border-radius:.5rem;color:var(--ink);background:var(--paper)}#map-theater-dialog::backdrop{background:#0008}#map-theater-dialog h2{font-size:1.2rem;margin:0 0 .75rem}#map-theater-dialog p{font-size:1rem;margin-bottom:.75rem;user-select:text;cursor:text}#map-theater-dialog a{overflow-wrap:anywhere}#map-theater-dialog form{margin-top:1rem;text-align:right}#map-theater-dialog button{font:inherit;min-height:44px;padding:.4rem 1rem;border:1px solid var(--rule);border-radius:.3rem;background:var(--paper);color:var(--link);cursor:pointer}
 h1{font-size:1.1rem;font-weight:650;margin:1rem 0 .2rem}.site-name a{display:inline-block;padding:.2rem 0;color:inherit;text-decoration:none}.site-name a:hover{text-decoration:underline}.schedule-notes{margin-top:1.25rem}
 footer hr{border:0;border-top:1px solid var(--rule);margin:1.5rem 0 .75rem}.footer-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem}.footer-links span{margin-left:auto;text-align:right}
 .source-freshness{width:100%;border-collapse:collapse;margin-bottom:.75rem;text-align:left}.source-freshness th,.source-freshness td{padding:.4rem .75rem .4rem 0;border-bottom:1px solid var(--rule);vertical-align:top}.source-freshness th:first-child{width:40%}.source-freshness td:last-child,.source-freshness th:last-child{padding-right:0}.source-freshness sup{margin-left:.15em}
@@ -168,6 +180,19 @@ ${Object.entries(venueNames).map(([id, name]) => `<button type="button" data-the
 </div></fieldset>
 <noscript><p>All theaters are shown. Enable JavaScript to filter by theater.</p></noscript>
 <p id="filter-status" role="status" aria-live="polite">${rows ? "" : "No screenings found in the saved data for this date."}</p>
+<details id="theater-map"><summary><span class="map-open">Show theater map</span><span class="map-close">Hide theater map</span></summary>
+<div class="map-frame" data-src="${theaterMapPath}" hidden>
+${Object.entries(theaterLocations).map(([id, location]) => {
+    const venue = id as keyof typeof venueNames;
+    const point = mapPoint(location.lat, location.lon);
+    return `<button type="button" class="map-pin" data-venue="${id}" style="left:${(point.x / 720 * 100).toFixed(3)}%;top:${(point.y / 720 * 100).toFixed(3)}%" aria-haspopup="dialog" aria-controls="map-theater-dialog" aria-label="${escape(location.name)} details"><span>${escape(venueNames[venue])}</span></button>`;
+  }).join("\n")}
+</div><p class="map-status" role="status" aria-live="polite"></p><button class="map-retry" type="button" hidden>Retry map</button>
+<noscript><p>Enable JavaScript to load the map. Theater addresses are listed below.</p></noscript>
+<p class="map-credit">Waterways © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · Roads: <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html">U.S. Census Bureau</a>.</p>
+<ul class="map-addresses" aria-label="Theater addresses">${Object.entries(theaterLocations).map(([id, location]) => `<li id="map-address-${id}"><a href="${escape(venueUrls[id as keyof typeof venueUrls])}">${escape(location.name)}</a><span>${escape(location.address)}</span></li>`).join("\n")}</ul>
+<dialog id="map-theater-dialog" aria-labelledby="map-theater-name"><h2 id="map-theater-name"></h2><p class="map-theater-address"></p><a class="map-theater-website"></a><form method="dialog"><button autofocus>Close</button></form></dialog>
+</details>
 ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
 <div class="schedule-notes"><p>Times in America/Chicago. Tickets and latest details are on the venue’s site.</p>
 </div>
@@ -183,5 +208,6 @@ ${hasStale || sources.some(source => source.incomplete) ? `<p id="source-notice"
 ${failedNames.length ? `<p>Import failed for ${escape(new Intl.ListFormat("en-US").format(failedNames))}; showing saved listings where available.</p>` : ""}
 <hr><div class="footer-links"><a href="https://github.com/sbone/tcmovie.club">Source on GitHub</a><span>A <a href="https://qualityti.me">Quality Time</a> Effort</span></div>
 </footer><script>(${initTheaterFilters.toString()})();
+(${initTheaterMap.toString()})();
 document.querySelector('nav [aria-current="date"]')?.scrollIntoView({block:"nearest",inline:"center"});</script></body></html>`;
 }

@@ -257,7 +257,7 @@ share the Mann parser. Calendar syntax uses `ical.js`, HTML uses Cheerio, and Ch
 local times use Temporal's IANA timezone rules. Ambiguous or nonexistent local
 times are rejected. The pages
 use ordinary links and inline CSS, with one small inline script for theater
-filters and no visible images or web fonts.
+filters and the optional map. No image or web font loads with the initial page.
 Text is escaped and generation enforces a 25 KB compressed HTML budget per page.
 
 [Storage](../src/store.ts) keeps one validated JSON file per source, replacing it
@@ -301,6 +301,31 @@ timestamps in a two-column table (Central time). Asterisks mark stale, failed, o
 never-checked sources; one shared notice explains incomplete/stale coverage.
 Failed sources are named together below the table. Detailed collector notes and
 errors remain in `sources.json` rather than repeating in every visible row.
+
+## Optional theater map
+
+Each date page has a native disclosure below the filters. Opening it requests
+one locally hosted SVG, with no mapping SDK, geocoding, tiles, or third-party
+browser requests. The same content-hashed URL is shared across dates. Generated
+`_headers` gives `/maps/*` a one-year immutable cache policy on Cloudflare Pages;
+Python's local preview server uses its normal HTTP caching instead. Generation
+enforces a 50 KB gzip budget for the map and removes obsolete hashed maps.
+
+The [stored basemap](../assets/theater-map.svg) contains simplified Census roads
+and OpenStreetMap waterways. HTML buttons overlay all seven markers, using the
+fixed viewport and projection in [theater-map.ts](../src/theater-map.ts), with
+equal vertical padding above Heights and below Parkway.
+Filters mute excluded markers without hiding or moving them. Selecting a marker
+opens a native dialog with its full name, selectable address, and website URL.
+Escape or Close dismisses the dialog and restores focus to the marker.
+
+The address list disappears once the map loads; details remain in the marker
+dialogs. Addresses remain available without JavaScript and when a map request fails;
+failed requests expose a retry button. The first reveal still needs connectivity
+unless the image is already cached. No prefetch or service worker is installed.
+See [the location reference](theater-locations.md) for coordinates and basemap
+provenance. The automated tests cover deferred loading, retries, all seven
+locations/dialogs, center/bounds, filter state, asset budgets, and output cleanup.
 
 ## System theme
 
@@ -361,8 +386,9 @@ Builds clear `dist/` before compiling, so removed or renamed modules do not leav
 executable leftovers. Successful site generation removes obsolete date directories
 and hashed sharing PNGs from the same output folder, preserving unrelated files.
 Use an output directory dedicated to generated pages. Generated output, local state, research captures, environment
-files, logs, temporary files, and test reports are ignored by Git. The SVG in
-`assets/` is the sharing-card source; PNGs are generated into the output directory.
+files, logs, temporary files, and test reports are ignored by Git. The SVGs in
+`assets/` are the sharing-card template and stored theater basemap. Sharing PNGs
+and the hashed map copy are generated into the output directory.
 
 - `npm run clean` removes reproducible `dist/`, `site/`, and `.state/demo/` output.
   Run `npm run generate` to rebuild the historical preview. Stop any server serving
