@@ -25,10 +25,10 @@ if (modes[0] !== "--history") {
   }
 } else if ((await stat(".state"))?.isDirectory()) {
   const cutoff = Date.now() - 30 * 86_400_000;
-  for (const [parent, marker] of [[".state/runs", "report.json"], [".state/previews", "finished.json"]]) {
+  for (const [parent, marker, prefix] of [[".state/runs", "report.json", "refresh"], [".state/previews", "finished.json", "refresh"], [".state/deployments", "report.json", "main"]]) {
     if (!(await stat(parent))?.isDirectory()) continue;
     for (const entry of await readdir(parent, { withFileTypes: true })) {
-      if (!entry.isDirectory() || !/^refresh-[\w-]+$/.test(entry.name)) continue;
+      if (!entry.isDirectory() || !new RegExp(`^${prefix}-[\\w-]+$`).test(entry.name)) continue;
       const path = join(parent, entry.name);
       let finishedAt;
       try {

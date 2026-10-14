@@ -5,8 +5,8 @@
   <key>WorkingDirectory</key><string>/Users/sbone/Code/tcmovie.club</string>
   <key>ProgramArguments</key><array>
     <string>/Users/sbone/.asdf/installs/nodejs/24.21.0/bin/node</string>
-    <string>/Users/sbone/.asdf/installs/nodejs/24.21.0/lib/node_modules/npm/bin/npm-cli.js</string>
-    <string>run</string><string>refresh:auto</string>
+    <string>/Users/sbone/Library/Application Support/tcmovie.club/deploy-main.mjs</string>
+    <string>--auto</string>
   </array>
   <key>EnvironmentVariables</key><dict>
     <key>PATH</key><string>/Users/sbone/.asdf/installs/nodejs/24.21.0/bin:/opt/homebrew/bin:/usr/bin:/bin</string>

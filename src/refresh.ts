@@ -1,10 +1,9 @@
-import { execFile, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, realpath, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
-import { promisify } from "node:util";
 import { loadCapturedSource } from "./captures.js";
 import { collect } from "./collect.js";
 import { screeningSchema, timeZone } from "./domain.js";
@@ -13,6 +12,7 @@ import { venueNames } from "./site.js";
 import { acceptSource, emptySource } from "./store.js";
 import { chicagoDate, datesFrom, scheduleDays } from "./time.js";
 import { runAutomatic } from "./automation.js";
+import { productionCommit } from "./deployment.js";
 
 function command(program: string, args: string[]): Promise<void> {
   return new Promise((done, reject) => {
@@ -22,32 +22,22 @@ function command(program: string, args: string[]): Promise<void> {
   });
 }
 
-export async function commitTrackedChanges(directory: string) {
-  const git = (args: string[]) => promisify(execFile)("git", args, { cwd: directory });
-  await git(["add", "-u"]);
-  const { stdout: changes } = await git(["diff", "--cached", "--name-only"]);
-  if (!changes.trim()) { console.log("No code changes to commit; collected data stays outside Git."); return false; }
-  console.log((await git(["diff", "--cached", "--stat"])).stdout.trim());
-  console.log((await git(["commit", "-m", "Update site for manual publication"])).stdout.trim());
-  return true;
-}
-
 async function refresh() {
   const args = process.argv.slice(2);
-  if (args.some(arg => !["--commit", "--auto", "--no-deploy"].includes(arg))
-    || (args.includes("--commit") && args.includes("--auto"))
-    || (args.includes("--no-deploy") && !args.includes("--auto"))) throw new Error("Usage: npm run refresh [-- --commit | --auto [--no-deploy]]");
+  if (args.some(arg => !["--auto", "--no-deploy"].includes(arg))
+    || (args.includes("--no-deploy") && !args.includes("--auto"))) throw new Error("Usage: npm run refresh [-- --auto [--no-deploy]]");
   if (args.includes("--auto")) { await runAutomatic(!args.includes("--no-deploy")); return; }
   if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error("Run npm run refresh in an interactive terminal; deployment requires an explicit yes.");
+  const commit = await productionCommit();
   await command("python3", ["--version"]);
   const capture = await loadCapturedSource("trylon", resolve("test/fixtures"));
   const savedTrylon = acceptSource(emptySource(), "trylon", capture.result, capture.responseAt);
   if (savedTrylon.state.kind !== "ready") throw new Error("The saved Trylon capture could not be validated.");
   await mkdir(".state/previews", { recursive: true });
-  const output = join(await mkdtemp(resolve(".state/previews/refresh-")), "site");
+  const output = join(await mkdtemp(join(await realpath(".state/previews"), "refresh-")), "site");
   console.log("Refreshing eligible theaters, including Trylon when its 24-hour wait has elapsed. No immediate retries.");
   const result = await collect({ contact: process.env.TC_CONTACT ?? "https://tcmovie.club",
-    storage: resolve(".state/live"), output, savedTrylon, trylon: "manual" });
+    storage: await realpath(".state/live"), output, savedTrylon, trylon: "manual" });
   const records = screeningSchema.array().parse(JSON.parse(await readFile(join(output, "screenings.json"), "utf8")));
   const dates = new Set(datesFrom(chicagoDate(new Date().toISOString()), scheduleDays));
   const stamp = new Intl.DateTimeFormat("en-US", { timeZone, dateStyle: "medium", timeStyle: "short" });
@@ -61,7 +51,7 @@ async function refresh() {
   }
   console.log(`\nPreview files: ${output}`);
   console.log(`Requests this run: ${result.requests.map(source => `${source.sourceId} ${source.count}`).join(", ")} (${result.requests.reduce((total, source) => total + source.count, 0)} total; includes robots and revalidation).`);
-  if (args.includes("--commit")) await commitTrackedChanges(process.cwd());
+  await writeFile(join(output, "deployment.json"), JSON.stringify({ source: "origin/main", commit }));
   let server: ChildProcess | undefined;
   const stop = () => { server?.kill(); };
   const interrupt = () => { stop(); process.exit(130); };
@@ -99,7 +89,8 @@ async function refresh() {
     try { answer = await terminal.question("Deploy this exact preview to https://tcmovie.club? [y/N] "); }
     finally { terminal.close(); }
     if (!/^(y|yes)$/i.test(answer.trim())) { console.log("Not deployed. Collected data and preview files are retained."); return; }
-    await command("npx", ["wrangler", "pages", "deploy", output, "--project-name=tcmovieclub", "--branch=main"]);
+    await productionCommit();
+    await command("npx", ["--yes", "wrangler@4.147.0", "pages", "deploy", output, "--project-name=tcmovieclub", "--branch=main", `--commit-hash=${commit}`]);
     console.log("Deployed to https://tcmovie.club. Preview files and collection state are retained locally.");
   } finally {
     stop();

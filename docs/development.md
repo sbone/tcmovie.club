@@ -33,17 +33,32 @@ Dates outside those captures may be empty even when the theater has published sc
 
 Run `npm run refresh` from an interactive terminal with Node.js, Python 3, and
 Wrangler access to the `tcmovieclub` Pages project (`npx wrangler login` for initial
-authentication). The command runs the tests, refreshes eligible sources, and builds
-a separate preview under `.state/previews/`. Its default collector identity is
-`https://tcmovie.club`; `TC_CONTACT` can override it.
+authentication). The launcher fetches **`origin/main`**, pins its current commit,
+and creates a disposable detached checkout. It runs `npm ci` and `npm run check`
+there before collecting or building anything for production. Local branches,
+uncommitted edits, untracked files, `node_modules`, and `dist` are not used.
+A failed fetch or test stops the run; there is no stale-main fallback.
 
-Use `npm run refresh:publish` to also commit tracked code changes after collection
-and before opening the preview. This stages edits/deletions to tracked files and
-includes any new files you already staged with `git add`. Untracked files are not
-automatically added. Data-only refreshes create no empty commit: generated pages,
-HTTP caches, and source state stay outside Git. A commit failure stops the workflow.
-The commit is retained even if you decline deployment; this command does not push.
-Deployment still requires an explicit `y` or `yes` after the local preview.
+Merge and push code to `main` before deploying it. `refresh:publish` is now an
+alias for this same workflow; it no longer commits local edits. Local feature
+previews still use `npm run generate` or `npm run collect` without publishing.
+Use `npm run refresh -- --check-only` to fetch/install/test main without collecting
+or deploying. The pinned commit is the head of remote main at the start of the
+run; a merge during a preview takes effect on the next run.
+
+The clean checkout shares only `.state/live`, `.state/runs`, and `.state/previews`
+with this repository after tests pass, preserving cached schedules, request budgets,
+backoff, and reports. The original `.env.local` is loaded for collection and
+Wrangler authentication remains available from the user's normal configuration.
+The default collector identity is `https://tcmovie.club`; `TC_CONTACT` can override it.
+
+Source provenance is recorded in `.state/deployments/main-*/report.json`, including
+the pinned commit and completion status. The disposable checkout and dependencies
+are removed on completion, including handled failures. Publication also records
+`deployment.json` in the site and supplies the commit hash to Wrangler. Direct
+production entry points require a clean checkout matching the launcher's pinned
+commit. These code-level guards take effect once this change is merged to main;
+the isolated launcher also works with earlier main revisions.
 
 The manual workflow includes Trylon whenever at least 12 hours have passed since
 its last request; it can run at any time of day. All sources still honor robots,
@@ -78,7 +93,7 @@ This does not schedule updates or run the offline generator after collection.
 npm run refresh:auto
 ```
 
-This runs the offline test suite, collects eligible sources (including Trylon in
+This fetches and tests an isolated checkout of `origin/main`, collects eligible sources (including Trylon in
 manual mode), validates the 14 generated date pages and sharing PNGs, deploys to
 `tcmovieclub` on `main`, and compares the production homepage, source timestamps,
 and listings with the generated files. It needs no terminal, Python preview, or
@@ -132,7 +147,7 @@ No LLM credentials or full environment are included in the bundle.
 ### Scheduling on this Mac at 12:30 AM
 
 [The launchd template](../deploy/club.tcmovie.refresh.plist) is configured for
-this checkout and Node 24.21.0. Review its paths before installing on another
+Node 24.21.0 and a stable launcher installed outside this checkout. Review its paths before installing on another
 machine or upgrading Node. The time is the Mac's local timezone: set it to
 **America/Chicago** for 12:30 AM Central.
 
@@ -143,11 +158,15 @@ The logged-in Mac must be available; launchd can coalesce missed runs after slee
 rather than refreshing at midnight.
 Use one deployment computer and preserve `.state/live` there.
 
-First install dependencies with `npm ci`, authenticate Wrangler, and ensure
-`npm run check` passes. Then install the reviewed template:
+Authenticate Git access to origin and Wrangler, and ensure `npm run check` passes.
+Install the launcher outside the branch-controlled checkout so branch switches
+cannot restore the old scheduler behavior. It needs only Node's standard library;
+each run installs main's locked dependencies in its disposable checkout. Reinstall
+the launcher when its reviewed implementation changes. Install the template:
 
 ```sh
-mkdir -p .state "$HOME/Library/LaunchAgents"
+mkdir -p .state "$HOME/Library/LaunchAgents" "$HOME/Library/Application Support/tcmovie.club"
+cp scripts/deploy-main.mjs "$HOME/Library/Application Support/tcmovie.club/deploy-main.mjs"
 cp deploy/club.tcmovie.refresh.plist "$HOME/Library/LaunchAgents/club.tcmovie.refresh.plist"
 launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/club.tcmovie.refresh.plist"
 ```
@@ -160,10 +179,19 @@ retry automatically on failure. To disable it:
 launchctl bootout "gui/$(id -u)" "$HOME/Library/LaunchAgents/club.tcmovie.refresh.plist"
 ```
 
-Automatic refreshes hold `.state/live/auto.lock` through deployment, in addition
-to the collection lock. After a crash, remove either lock only after confirming
-its process is no longer running. Avoid manual publication while the scheduled
-job is active. Nothing installs/enables this schedule merely by checking out the
+The launcher holds `.state/production.lock` across fetch, tests, collection,
+manual approval, and deployment. Automatic refreshes also hold
+`.state/live/auto.lock`, in addition to the collection lock. After a crash, remove
+a lock only after confirming its process is no longer running; abandoned source
+checkouts are under `.state/deployments/`. Concurrent manual and scheduled
+launcher runs fail closed on the production lock. To use the stable launcher
+manually even from an older branch, run this from the repository directory:
+
+```sh
+node "$HOME/Library/Application Support/tcmovie.club/deploy-main.mjs"
+```
+
+Nothing installs/enables this schedule merely by checking out the
 repository. No messaging/notification integration is configured; errors are in
 the reports, logs, and exit status.
 
@@ -368,7 +396,7 @@ files, logs, temporary files, and test reports are ignored by Git. The SVG in
   Run `npm run generate` to rebuild the historical preview. Stop any server serving
   `site/` before cleaning it.
 - `npm run clean:history -- --dry-run` lists completed refresh runs and manual
-  previews older than 30 days; omit `--dry-run` to remove them. This also runs before
+  previews and deployment source reports older than 30 days; omit `--dry-run` to remove them. This also runs before
   each `npm run refresh` workflow, including scheduled refreshes.
 
 History cleanup requires a completion timestamp in `report.json` (automatic runs)

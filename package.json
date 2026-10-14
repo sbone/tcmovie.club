@@ -13,8 +13,8 @@
     "check": "npm test",
     "generate": "npm run build && node dist/generate.js",
     "collect": "npm run build && node --env-file-if-exists=.env.local dist/collect.js",
-    "refresh": "npm run check && npm run clean:history && node --env-file-if-exists=.env.local dist/refresh.js",
-    "refresh:publish": "npm run refresh -- --commit",
+    "refresh": "node scripts/deploy-main.mjs",
+    "refresh:publish": "npm run refresh",
     "refresh:auto": "npm run refresh -- --auto"
   },
   "dependencies": {

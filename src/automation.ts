@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rmdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { mkdir, mkdtemp, readFile, realpath, rmdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import { setTimeout as sleep } from "node:timers/promises";
 import { load } from "cheerio";
@@ -12,6 +12,8 @@ import { readHttp } from "./http.js";
 import { errorMessage } from "./parse.js";
 import { readSource, writeJson } from "./store.js";
 import { chicagoDate, datesFrom, scheduleDays } from "./time.js";
+
+import { productionCommit } from "./deployment.js";
 
 const exec = promisify(execFile);
 
@@ -74,16 +76,17 @@ export async function queryReview(command: string, bundle: string, destination: 
 }
 
 export async function runAutomatic(deploy: boolean) {
-  const storage = resolve(".state/live");
-  await mkdir(storage, { recursive: true });
+  const commit = deploy ? await productionCommit() : process.env.TC_PRODUCTION_COMMIT ?? null;
+  await mkdir(".state/live", { recursive: true });
+  const storage = await realpath(".state/live");
   const lock = join(storage, "auto.lock");
   await mkdir(lock); // Hold through deployment to prevent overlapping automatic publications.
   let directory: string | undefined;
   const startedAt = new Date().toISOString();
-  const report: Record<string, unknown> = { startedAt, status: "started", deployed: false };
+  const report: Record<string, unknown> = { startedAt, status: "started", deployed: false, codeCommit: commit };
   try {
     await mkdir(".state/runs", { recursive: true });
-    directory = await mkdtemp(resolve(".state/runs/refresh-"));
+    directory = await mkdtemp(join(await realpath(".state/runs"), "refresh-"));
     const output = join(directory, "site");
     console.log(`Run directory: ${directory}`);
     await writeJson(directory, "report.json", report);
@@ -135,8 +138,10 @@ export async function runAutomatic(deploy: boolean) {
     await writeJson(directory, "report.json", report);
     for (const source of result.requests) console.log(`${source.sourceId}: ${source.count} requests this run`);
     if (deploy) {
+      await productionCommit();
+      await writeJson(output, "deployment.json", { source: "origin/main", commit });
       const { stdout, stderr } = await exec("npx", ["--yes", "wrangler@4.147.0", "pages", "deploy", output,
-        "--project-name=tcmovieclub", "--branch=main"], { timeout: 180_000, maxBuffer: 2 * 1024 * 1024 });
+        "--project-name=tcmovieclub", "--branch=main", `--commit-hash=${commit}`], { timeout: 180_000, maxBuffer: 2 * 1024 * 1024 });
       console.log(stdout);
       await writeFile(join(directory, "deployment.log"), stdout + stderr);
       report.deployed = true;

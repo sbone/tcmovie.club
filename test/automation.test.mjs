@@ -42,6 +42,7 @@ test("review command receives a bundle path and produces advice without interpre
 
 test("automatic refresh writes a zero-request report and records deployment failure without publishing", async () => {
   const originalCwd = process.cwd(), originalPath = process.env.PATH, originalFetch = runtime.fetch;
+  const originalCommit = process.env.TC_PRODUCTION_COMMIT;
   const directory = await mkdtemp(join(tmpdir(), "tc-auto-"));
   try {
     const local = Temporal.Now.zonedDateTimeISO("America/Chicago");
@@ -68,16 +69,25 @@ test("automatic refresh writes a zero-request report and records deployment fail
     await mkdir(bin);
     await writeFile(join(bin, "npx"), '#!/bin/sh\necho "simulated deployment failure" >&2\nexit 42\n', { mode: 0o755 });
     process.env.PATH = `${bin}:${originalPath}`;
+    const git = (...args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+    git("init", "-b", "main");
+    await writeFile(".gitignore", ".state/\nseed-site/\nbin/\n");
+    git("add", ".gitignore");
+    git("-c", "user.name=Test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false", "commit", "-m", "main");
+    process.env.TC_PRODUCTION_COMMIT = git("rev-parse", "HEAD");
+    git("update-ref", "refs/remotes/origin/main", process.env.TC_PRODUCTION_COMMIT);
     await assert.rejects(runAutomatic(true), /simulated deployment failure/);
     const secondRun = (await readdir(runs)).find(run => run !== firstRun);
     const second = JSON.parse(await readFile(join(runs, secondRun, "report.json"), "utf8"));
     assert.equal(second.status, "failed");
     assert.equal(second.deployed, false);
     assert.equal(second.totalRequests, 0);
+    assert.equal(second.codeCommit, process.env.TC_PRODUCTION_COMMIT);
     await assert.rejects(access(join(storage, "auto.lock")));
   } finally {
     process.chdir(originalCwd);
     process.env.PATH = originalPath;
+    if (originalCommit === undefined) delete process.env.TC_PRODUCTION_COMMIT; else process.env.TC_PRODUCTION_COMMIT = originalCommit;
     runtime.fetch = originalFetch;
     await rm(directory, { recursive: true, force: true });
   }

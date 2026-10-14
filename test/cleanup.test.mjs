@@ -18,11 +18,12 @@ test("cleanup expires completed snapshots but preserves recent, unfinished, unkn
   try {
     const old = new Date(Date.now() - 31 * 86_400_000).toISOString();
     const recent = new Date().toISOString();
-    for (const parent of ["runs", "previews"]) {
-      const marker = parent === "runs" ? "report.json" : "finished.json";
+    for (const parent of ["runs", "previews", "deployments"]) {
+      const prefix = parent === "deployments" ? "main" : "refresh";
+      const marker = parent === "previews" ? "finished.json" : "report.json";
       for (const [name, value] of [["refresh-old", { finishedAt: old }], ["refresh-recent", { finishedAt: recent }],
         ["refresh-running", {}], ["refresh-invalid", null], ["keep-other", { finishedAt: old }]]) {
-        const directory = join(root, ".state", parent, name);
+        const directory = join(root, ".state", parent, name.replace(/^refresh/, prefix));
         await mkdir(directory, { recursive: true });
         await writeFile(join(directory, marker), JSON.stringify(value));
       }
@@ -33,10 +34,11 @@ test("cleanup expires completed snapshots but preserves recent, unfinished, unkn
     assert.match(run(root, "--history", "--dry-run"), /Would remove/);
     assert.ok(await exists(join(root, ".state/runs/refresh-old")));
     run(root, "--history");
-    for (const parent of ["runs", "previews"]) {
-      assert.equal(await exists(join(root, ".state", parent, "refresh-old")), false);
+    for (const parent of ["runs", "previews", "deployments"]) {
+      const prefix = parent === "deployments" ? "main" : "refresh";
+      assert.equal(await exists(join(root, ".state", parent, `${prefix}-old`)), false);
       for (const name of ["refresh-recent", "refresh-running", "refresh-invalid", "keep-other"]) {
-        assert.ok(await exists(join(root, ".state", parent, name)));
+        assert.ok(await exists(join(root, ".state", parent, name.replace(/^refresh/, prefix))));
       }
     }
     assert.ok(await exists(join(root, ".state/live/heights.json")));
