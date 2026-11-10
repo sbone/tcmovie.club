@@ -37,6 +37,13 @@ remain identical after reducing those fixtures.
 It uses recorded homepage HTTP response dates conservatively for freshness,
 including potentially cached responses, rather than the time the demo is generated.
 
+Riverview announcements without an explicit dated start remain warnings even
+when they link only to an external organizer. Confirmed screenings still require
+a valid local film link. The November 10 specials capture covers the BANFF
+announcement that previously rejected the entire import. The specials parser
+currently reads only the first explicit start per announcement; encore coverage
+remains a separate limitation.
+
 See [source research](../../docs/source-research.md) for acquisition constraints.
 
 `collect.ts` now discovers live inputs with the bounded HTTP client in `../http.ts`.

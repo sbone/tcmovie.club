@@ -87,15 +87,17 @@ export function parseRiverviewSpecials(raw: string, context: string): Result<Par
       const card = $(element), title = card.find("h3").text().trim();
       const link = card.find('a[href*="/show/show/"]').first().attr("href");
       try {
-        if (!title || !link) throw new Error("Missing special film title/link");
-        const url = new URL(link, "https://www.riverviewtheater.com");
-        if (url.hostname !== "www.riverviewtheater.com" || !/^\/show\/show\/\d+$/.test(url.pathname)) {
-          throw new Error("Unexpected special film link");
-        }
+        if (!title) throw new Error("Missing special film title/link");
+        // Untimed announcements may link only to an external organizer (e.g. BANFF).
         const match = card.text().match(/\b(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?\s+at\s+(\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?)/i);
         if (!match) {
           diagnostics.push({ kind: "warning", record: title, message: "Special screening has no explicit dated start time" });
           return;
+        }
+        if (!link) throw new Error("Missing special film title/link");
+        const url = new URL(link, "https://www.riverviewtheater.com");
+        if (url.hostname !== "www.riverviewtheater.com" || !/^\/show\/show\/\d+$/.test(url.pathname)) {
+          throw new Error("Unexpected special film link");
         }
         // ponytail: yearless announcements resolve only within the prior week / next 180 days.
         const matches = [anchor.year - 1, anchor.year, anchor.year + 1]

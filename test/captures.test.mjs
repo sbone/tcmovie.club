@@ -7,6 +7,8 @@ import { parseRiverview, parseRiverviewSpecials } from "../dist/sources/rivervie
 import { parseParkway } from "../dist/sources/parkway.js";
 import { chicagoDate } from "../dist/time.js";
 import { dedupe } from "../dist/dedupe.js";
+import { combineParsed } from "../dist/parse.js";
+import { acceptSource, emptySource } from "../dist/store.js";
 
 const read = (venue, name) => readFileSync(new URL(`./fixtures/${venue}/${name}`, import.meta.url), "utf8");
 const captured = async venue => {
@@ -95,4 +97,24 @@ test("Parkway confirms every film/program start in the preview, including both H
   const ambiguous = read("parkway", "hump.html").replace("8:30 pm Doors", "Doors TBA");
   const broken = parseParkway(read("parkway", "movies.html"), { "/all-events/hump-fall-2026": ambiguous });
   assert.ok(broken.value.diagnostics.some(item => item.kind === "invalid"));
+});
+
+test("Riverview's untimed BANFF announcement does not reject daily listings", () => {
+  const context = '<h2>Now Playing - Tuesday, November 10, 2026</h2>';
+  const raw = read("riverview", "specials-2026-11-10.html");
+  const specials = parseRiverviewSpecials(raw, context);
+  assert.equal(specials.kind, "ok");
+  assert.deepEqual(specials.value.diagnostics.filter(note => note.kind === "invalid"), []);
+  assert.ok(specials.value.diagnostics.some(note => note.record === "BANFF Mountain Film Fest" && note.kind === "warning"));
+  assert.equal(specials.value.screenings.length, 1);
+  assert.equal(specials.value.screenings[0].start.at, "2026-11-12T01:15:00.000Z");
+  const daily = parseRiverview(`${context}<div class="blog-sidebar"><ul class="playing"><li><a href="/show/show/1">Daily film</a><br>7:00PM</li></ul></div>`);
+  const accepted = acceptSource(emptySource(), "riverview", combineParsed([daily, specials]), "2026-11-10T06:31:11.000Z");
+  assert.equal(accepted.state.kind, "ready");
+  assert.equal(accepted.state.snapshot.screenings.length, 2);
+  const dated = raw.replace("December 9th &amp; 10th, 2026", "Wednesday, December 9th at 7:00pm");
+  assert.ok(parseRiverviewSpecials(dated, context).value.diagnostics.some(note => note.record === "BANFF Mountain Film Fest" && note.kind === "invalid"),
+    "a timed screening must still have a valid film link");
+  const untitled = raw.replace("BANFF Mountain Film Fest </h3>", "</h3>");
+  assert.ok(parseRiverviewSpecials(untitled, context).value.diagnostics.some(note => note.kind === "invalid"));
 });
