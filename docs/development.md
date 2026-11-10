@@ -210,7 +210,7 @@ TC_CONTACT='https://your-public-project.example' npm run collect
 ```
 
 Replace the example with your public project URL or contact email. The command
-fetches Heights, Riverview, Parkway, The Main Cinema, Grandview, and Highland,
+fetches Heights, Riverview, Parkway, and The Main Cinema,
 retains good data on failure, and writes 14 date pages starting today in Chicago,
 `screenings.json`, and `sources.json`.
 It uses ordinary HTML/calendar/JSON parsers, with no AI calls or fixture corrections.
@@ -244,11 +244,12 @@ Only events labeled Theater 1–5 are assigned to The Main. The feed's UTC `star
 field disagrees with its displayed clock times, so the adapter resolves each
 `date` and `start_time` in Chicago time. Other venues are excluded.
 
-Grandview and Highland share Mann's host and run sequentially with shared request
-spacing. Each source fetches today's page and selectable future dates within its
-six-request budget, including robots checks. The inspected picker offered seven
-days, with some unavailable dates; this is not a guaranteed publication window.
-Unfetched or unpublished dates remain unverified, rather than confirmed empty.
+Grandview and Highland are retired from collection and publication after Mann's
+site blocked automated access. Their parsers, fixtures, and saved state remain
+available for investigation. `activeVenueIds` in `domain.ts` controls the five
+published theaters. Retired sources make no requests, publish no saved screenings,
+and do not fail refreshes or require a saved snapshot. Only their last-checked
+timestamps and a short access-blocked note remain in the footer.
 
 Only currently discovered pages contribute. Freshness reflects the oldest response
 used, and uncovered pages or uncertain times produce diagnostics, not invented data.
@@ -327,8 +328,9 @@ embedded by the renderer, with no extra browser request or runtime dependency.
 The source-freshness footer combines theater website links and last-checked
 timestamps in a two-column table (Central time). Asterisks mark stale, failed, or
 never-checked sources; one shared notice explains incomplete/stale coverage.
-Failed sources are named together below the table. Detailed collector notes and
-errors remain in `sources.json` rather than repeating in every visible row.
+Failed active sources are named together below the table. Retired Mann theaters
+instead display “Listings unavailable: automated access blocked.” in their rows.
+Detailed collector notes and errors remain in `sources.json`.
 
 ## System theme
 
@@ -343,9 +345,9 @@ gradient; forced-colors mode uses the system palette.
 
 Generated pages include Open Graph and Twitter card metadata directly in HTML.
 Each date gets a 1200 × 630 PNG with its date, count of non-cancelled screenings,
-and badges for all seven theaters in two rows, including those without listings
-that day. Descriptions name the theaters with active screenings, including
-Grandview and Highland. The homepage uses the first date
+and badges for the five active theaters in one row, including those without listings
+that day. Retired theaters contribute neither listings nor counts, badges, or
+description text. The homepage uses the first date
 in the published schedule. Descriptions use “See films on” and Central Time wording.
 
 The [SVG template](../assets/social-card.svg) is rendered at build time with

@@ -24,15 +24,13 @@ The site follows your system's light or dark appearance, with readable colors,
 clear selected states, and keyboard-friendly controls. No images or web fonts
 need to load before you can find a film.
 
-## Seven fine theaters
+## Five fine theaters
 
 - [Trylon Cinema](https://www.trylon.org/)
 - [Heights Theater](https://www.heightstheater.com/)
 - [The Parkway Theater](https://theparkwaytheater.com/)
 - [Riverview Theater](https://www.riverviewtheater.com/)
 - [The Main Cinema / MSP Film Society](https://mspfilm.org/)
-- [Mann Grandview 1 & 2](https://www.manntheatres.com/?theatre=grandview-1-2&day=0)
-- [Mann Highland 1 & 2](https://www.manntheatres.com/?theatre=highland-1-2&day=0)
 
 Times are in **Central Time**. Members-only screenings and uncertain start times
 are labeled. Check the theater's own listing for the latest details and tickets.

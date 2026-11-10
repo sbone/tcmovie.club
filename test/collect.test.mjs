@@ -71,6 +71,12 @@ test("collector discovers sources, rotates bounded details, preserves failures, 
     const fake = fakeClock();
     const first = await collect(options, fake.clock);
     assert.equal(first.failed, false);
+    assert.equal(fake.calls.some(call => call.url.includes("manntheatres.com")), false);
+    for (const source of ["grandview", "highland"]) {
+      assert.equal(first.requests.find(item => item.sourceId === source).count, 0);
+      assert.equal((await readSource(storage, source)).state.kind, "not-checked");
+      assert.match(first.sources.find(item => item.sourceId === source).note, /automated access blocked/);
+    }
     assert.equal(first.requests.reduce((sum, source) => sum + source.count, 0), fake.calls.length);
     assert.ok(first.requests.every(source => !source.review));
     const trylon = await readSource(storage, "trylon");

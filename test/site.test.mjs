@@ -20,7 +20,7 @@ test("HTML renders complete listings and accessible theater toggles", () => {
   const $ = load(html);
   assert.equal($("img, script[src], link:not([rel=canonical])").length, 0);
   assert.equal($("script").length, 1);
-  assert.equal($("#theater-filters[hidden] button[data-theater][aria-pressed=true]").length, 7);
+  assert.equal($("#theater-filters[hidden] button[data-theater][aria-pressed=true]").length, 5);
   assert.equal($(".screenings li[data-venue=trylon]").length, 1);
   assert.equal($(".screenings li[data-venue=trylon] .venue-badge").text(), "Trylon");
   assert.match($("noscript").text(), /All theaters are shown/);
@@ -47,7 +47,9 @@ test("source freshness links every theater and shares stale/incomplete notices o
   assert.equal(table.find("tbody tr").length, 7);
   assert.equal(table.find('time[datetime="2026-10-13T13:35:18.000Z"]').length, 6);
   assert.equal(table.find("time").first().text(), "Oct 13, 2026, 8:35 AM");
-  assert.equal(table.find('td[aria-describedby="source-notice"] sup').length, 3);
+  assert.equal(table.find('td[aria-describedby="source-notice"] sup').length, 2);
+  assert.equal(table.find("small").length, 2);
+  assert.equal(table.find("small").first().text(), "Listings unavailable: automated access blocked.");
   assert.match(table.find("tr").last().text(), /Never checked/);
   assert.equal($("#source-notice").length, 1);
   assert.equal(($("body").text().match(/may be stale/g) ?? []).length, 1);
@@ -71,6 +73,22 @@ test("HTML escapes source text, sorts chronologically, and labels uncertain/canc
   assert.match(html, /Event starts · film time unconfirmed/);
   assert.match(html, /Cancelled/);
   assert.match(renderDate("2026-09-28", records, sources), /No screenings found/);
+});
+
+test("retired Mann screenings cannot reach listings, filters, or sharing text", () => {
+  const records = ["grandview", "highland"].map(venueId => ({ ...parsed.value.screenings[0],
+    venueId, sourceId: venueId, title: "Retired theater film",
+    start: { kind: "screening", at: "2026-11-10T22:00:00.000Z", doorsAt: null },
+  }));
+  const retired = records.map(show => ({ sourceId: show.sourceId, checkedAt: "2026-11-01T05:30:59Z",
+    stale: true, error: "HTTP 403", incomplete: true, note: "Old schedule" }));
+  const $ = load(renderDate("2026-11-10", records, retired));
+  assert.doesNotMatch($("head, main").text(), /Grandview|Highland|Retired theater film/i);
+  assert.equal($("button[data-theater=grandview], button[data-theater=highland], .screenings li").length, 0);
+  for (const el of $("meta[content]").toArray()) assert.doesNotMatch($(el).attr("content"), /Grandview|Highland|Retired theater film/i);
+  assert.equal($(".source-freshness small").length, 2);
+  assert.equal($("#source-notice").length, 0);
+  assert.doesNotMatch($("footer").text(), /Import failed|showing saved listings/);
 });
 
 test("homepage and dated pages have distinct share URLs and static large-image metadata", () => {
@@ -115,13 +133,13 @@ test("theme text and theater states retain contrast against surfaces and gradien
     return (values[1] + .05) / (values[0] + .05);
   };
   assert.equal(themes.length, 2);
-  assert.equal(venues.length, 14);
+  assert.equal(venues.length, 10);
   const gradientTop = css.match(/linear-gradient\(180deg,(#[a-f0-9]{6})/)[1];
   for (const [index, theme] of themes.entries()) {
     const backgrounds = index ? [theme.paper, gradientTop] : [theme.paper];
     const pairs = backgrounds.flatMap(background => [[theme.ink, background], [theme.link, background]]);
     pairs.push([theme.link, theme.hover], [theme["selected-ink"], theme["selected-bg"]]);
-    for (const venue of venues.slice(index * 7, index * 7 + 7)) {
+    for (const venue of venues.slice(index * 5, index * 5 + 5)) {
       pairs.push([venue["venue-color"], venue["venue-tint"]], [theme["on-venue"], venue["venue-color"]]);
       for (const background of backgrounds) pairs.push([venue["venue-color"], background]);
     }

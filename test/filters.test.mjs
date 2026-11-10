@@ -10,7 +10,7 @@ function page(search = "") {
     addEventListener(name, callback) { this.listeners[name] = callback; },
     click() { this.listeners.click(); },
   });
-  const buttons = ["trylon", "heights", "parkway", "riverview", "main", "grandview", "highland"].map(theater => element({ theater }));
+  const buttons = ["trylon", "heights", "parkway", "riverview", "main"].map(theater => element({ theater }));
   const rows = ["trylon", "heights", "main"].map(venue => element({ venue }));
   const links = [{ href: "/2026-09-30/" }];
   const status = element(), reset = element();
@@ -69,5 +69,6 @@ test("all, none, unknown venues, and selected venues with no screenings stay dis
   assert.match(all.status.textContent, /No theaters selected/);
   assert.equal(page("?theaters=").visible().length, 0);
   assert.deepEqual(page("?theaters=unknown,heights").visible(), ["heights"]);
+  assert.deepEqual(page("?theaters=grandview,highland,heights").visible(), ["heights"]);
   assert.match(page("?theaters=parkway").status.textContent, /No screenings listed/);
 });

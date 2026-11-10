@@ -6,7 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { loadCapturedSource } from "./captures.js";
 import { collect } from "./collect.js";
-import { screeningSchema, timeZone } from "./domain.js";
+import { isActiveVenue, screeningSchema, timeZone } from "./domain.js";
 import { errorMessage } from "./parse.js";
 import { venueNames } from "./site.js";
 import { acceptSource, emptySource } from "./store.js";
@@ -76,12 +76,12 @@ async function refresh() {
     if (!response.ok || !(await response.text()).includes("Screenings on")) throw new Error("Local preview failed its HTTP smoke check.");
     console.log(`\nPreview: ${url}\nFrom another computer: http://<server-LAN-or-Tailscale-IP>:${port}/\nCheck today, another date, theater filters, and source freshness before deploying.`);
     if (process.platform === "darwin") await command("open", [url]).catch(() => console.log(`Open ${url} in your browser.`));
-    if (!records.length || result.sources.some(source => !source.checkedAt)) {
+    if (!records.length || result.sources.some(source => isActiveVenue(source.sourceId) && !source.checkedAt)) {
       console.error("Deployment blocked: a theater has no saved schedule. Review the errors above before replacing the published site.");
       process.exitCode = 1;
       return;
     }
-    if (result.failed || result.sources.some(source => source.stale || source.incomplete)) {
+    if (result.failed || result.sources.some(source => isActiveVenue(source.sourceId) && (source.stale || source.incomplete))) {
       console.log("This preview includes the stale/incomplete data or collection errors listed above.");
     }
     const terminal = createInterface({ input: process.stdin, output: process.stdout });

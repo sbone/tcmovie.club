@@ -2,7 +2,7 @@ import { mkdir, rmdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Temporal } from "@js-temporal/polyfill";
-import { instantSchema, sourceIdSchema, timeZone } from "./domain.js";
+import { instantSchema, isActiveVenue, sourceIdSchema, timeZone } from "./domain.js";
 import type { SourceId } from "./domain.js";
 import { dedupe } from "./dedupe.js";
 import { CollectionError, createHttp, dayMs, origins, readHttp, runtime, saveHttp, userAgent } from "./http.js";
@@ -32,6 +32,13 @@ export async function collect(options: { contact: string; storage: string; outpu
     const hostRequests = new Map<string, number>();
     const collectOne = async (sourceId: SourceId) => {
       const previous = await readSource(options.storage, sourceId);
+      if (!isActiveVenue(sourceId)) {
+        const snapshot = lastGood(previous.state);
+        const info: SourceInfo = { sourceId, checkedAt: snapshot?.checkedAt ?? null,
+          changedAt: snapshot?.changedAt ?? null, stale: true,
+          note: "Listings unavailable: automated access blocked.", error: null };
+        return { info, screenings: [], failed: false, requests: 0, requestedUrls: [], review: false };
+      }
       const state = await readHttp(httpDirectory, sourceId);
       const requestedUrls: string[] = [];
       const save = () => saveHttp(httpDirectory, sourceId, state);

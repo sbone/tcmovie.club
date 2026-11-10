@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import type { Screening } from "./domain.js";
+import { isActiveVenue } from "./domain.js";
 
 const template = readFileSync(new URL("../assets/social-card.svg", import.meta.url), "utf8");
 const venues = [
@@ -9,25 +10,22 @@ const venues = [
   { id: "parkway", name: "Parkway", color: "#91451f", tint: "#f0e7df", width: 200 },
   { id: "riverview", name: "Riverview", color: "#285f8f", tint: "#e5eaea", width: 220 },
   { id: "main", name: "Main", color: "#515d6b", tint: "#e9e9e6", width: 168 },
-  { id: "grandview", name: "Grandview", color: "#72552d", tint: "#eee8df", width: 220 },
-  { id: "highland", name: "Highland", color: "#365f59", tint: "#e5eeea", width: 200 },
 ] as const;
 const format = (date: string, year: boolean) => new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC", weekday: "long", month: "long", day: "numeric", ...(year ? { year: "numeric" } as const : {}),
 }).format(new Date(`${date}T12:00:00Z`));
 
 export function socialCard(date: string, day: readonly Screening[]) {
-  const listed = day.filter(show => show.status.kind !== "cancelled");
+  const listed = day.filter(show => isActiveVenue(show.venueId) && show.status.kind !== "cancelled");
   const active = venues.filter(venue => listed.some(show => show.venueId === venue.id));
   const summary = `${listed.length} screening${listed.length === 1 ? "" : "s"} · ${venues.length} theaters covered`;
   const names = new Intl.ListFormat("en-US").format(active.map(venue => venue.name));
   const description = `${listed.length ? `${listed.length} screening${listed.length === 1 ? "" : "s"} at ${names}` : "No screenings listed"}. See films on ${format(date, true)}. All times Central.`;
   let x = 72;
-  const badges = venues.map((venue, index) => {
-    if (index % 4 === 0) x = 72;
-    const y = 344 + Math.floor(index / 4) * 68;
+  const badges = venues.map(venue => {
+    const y = 374;
     const badge = `<rect x="${x}" y="${y}" width="${venue.width}" height="56" rx="8" fill="${venue.tint}"/><text x="${x + venue.width / 2}" y="${y + 38}" fill="${venue.color}">${venue.name}</text>`;
-    x += venue.width + 32;
+    x += venue.width + 24;
     return badge;
   }).join("");
   const svg = template.replace("{{date}}", format(date, false)).replace("{{summary}}", summary)

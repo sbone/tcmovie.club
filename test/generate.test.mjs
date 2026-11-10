@@ -26,7 +26,7 @@ test("regenerating an output directory removes obsolete generated pages and imag
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test("offline build combines seven sources and retains a venue when its next import breaks", async () => {
+test("offline build retains seven parsers but publishes only active theaters and preserves fallback", async () => {
   const directory = await mkdtemp(join(tmpdir(), "tc-generate-"));
   const captures = join(directory, "fixtures");
   const output = join(directory, "site");
@@ -43,6 +43,8 @@ test("offline build combines seven sources and retains a venue when its next imp
       assert.ok(saved.state.snapshot.screenings.every(show => show.venueId === venue));
     }
     assert.equal((await smokeSite(output, "2026-09-29")).pages, 14);
+    const published = JSON.parse(await readFile(join(output, "screenings.json"), "utf8"));
+    assert.ok(published.every(show => !["grandview", "highland"].includes(show.venueId)));
     const html = await readFile(join(output, "index.html"), "utf8");
     const $ = load(html);
     // The reviewed film page supplements the feed's missing Sep 29 Trylon screenings.
@@ -94,7 +96,9 @@ test("offline build combines seven sources and retains a venue when its next imp
     await writeFile(sourceFile, JSON.stringify(summaries));
     await assert.rejects(smokeSite(output, "2026-09-29"), /no saved schedule/);
     summaries[0].checkedAt = "2026-09-29T11:16:22Z";
+    for (const source of summaries.filter(source => ["grandview", "highland"].includes(source.sourceId))) source.checkedAt = null;
     await writeFile(sourceFile, JSON.stringify(summaries));
+    assert.equal((await smokeSite(output, "2026-09-29")).pages, 14, "retired sources need no saved schedule");
     await writeFile(join(output, "2026-09-30/index.html"), "<html>Broken page</html>");
     await assert.rejects(smokeSite(output, "2026-09-29"), /Screenings on/);
   } finally { await rm(directory, { recursive: true, force: true }); }

@@ -7,7 +7,8 @@ import { promisify } from "node:util";
 import { setTimeout as sleep } from "node:timers/promises";
 import { load } from "cheerio";
 import { collect } from "./collect.js";
-import { instantSchema, screeningSchema, sourceIdSchema } from "./domain.js";
+import { activeVenueIds, instantSchema, isActiveVenue, screeningSchema, sourceIdSchema } from "./domain.js";
+import type { SourceId } from "./domain.js";
 import { readHttp } from "./http.js";
 import { errorMessage } from "./parse.js";
 import { readSource, writeJson } from "./store.js";
@@ -40,16 +41,19 @@ export async function verifyProduction(output: string, run: string, request = fe
 export async function smokeSite(output: string, firstDate: string) {
   const screenings = screeningSchema.array().parse(JSON.parse(await readFile(join(output, "screenings.json"), "utf8")));
   assert.ok(screenings.length, "Deployment blocked: empty schedule");
+  assert.ok(screenings.every(show => isActiveVenue(show.venueId)), "Retired theater listings must not be published");
   const sources = JSON.parse(await readFile(join(output, "sources.json"), "utf8"));
   assert.deepEqual(sources.map((source: { sourceId: string }) => source.sourceId).sort(), [...sourceIdSchema.options].sort());
-  for (const source of sources) assert.ok(instantSchema.safeParse(source.checkedAt).success, `${source.sourceId}: no saved schedule`);
+  for (const source of sources.filter((source: { sourceId: SourceId }) => isActiveVenue(source.sourceId))) {
+    assert.ok(instantSchema.safeParse(source.checkedAt).success, `${source.sourceId}: no saved schedule`);
+  }
   const dates = datesFrom(firstDate, scheduleDays);
   for (const [index, date] of dates.entries()) {
     const html = await readFile(join(output, date, "index.html"), "utf8");
     const $ = load(html);
     assert.match($("h1").text(), /Screenings on/);
     assert.equal($("nav a").length, dates.length);
-    assert.equal($("button[data-theater][aria-pressed=true]").length, 7);
+    assert.deepEqual($("button[data-theater][aria-pressed=true]").map((_, el) => $(el).attr("data-theater")).get(), activeVenueIds);
     assert.equal($(".screenings li").length, screenings.filter(show => chicagoDate(show.start.at) === date).length);
     assert.equal($("link[rel=canonical]").attr("href"), `https://tcmovie.club/${date}/`);
     assert.equal($("meta[property='og:url']").attr("content"), `https://tcmovie.club/${date}/`);

@@ -9,6 +9,10 @@ export type Result<Value, Error> =
 export const venueIdSchema = z.enum(["trylon", "heights", "parkway", "riverview", "main", "grandview", "highland"]);
 export type VenueId = z.infer<typeof venueIdSchema>;
 
+// Mann adapters and saved state remain available, but their listings are retired.
+export const activeVenueIds: readonly VenueId[] = ["trylon", "heights", "parkway", "riverview", "main"];
+export const isActiveVenue = (id: VenueId): boolean => activeVenueIds.includes(id);
+
 // A source can list screenings at another venue (e.g. Trylon at Heights).
 export const sourceIdSchema = z.enum(["trylon", "heights", "parkway", "riverview", "main", "grandview", "highland"]);
 export type SourceId = z.infer<typeof sourceIdSchema>;

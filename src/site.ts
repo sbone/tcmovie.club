@@ -1,4 +1,4 @@
-import { startLabel, timeZone } from "./domain.js";
+import { activeVenueIds, isActiveVenue, startLabel, timeZone } from "./domain.js";
 import type { Screening, SourceId } from "./domain.js";
 import { chicagoDate } from "./time.js";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
@@ -38,6 +38,7 @@ const dayLabel = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "s
 const shareDate = new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
 export async function writeSite(output: string, dates: readonly string[], screenings: readonly Screening[], sources: readonly SourceInfo[]) {
+  screenings = screenings.filter(item => isActiveVenue(item.venueId));
   const writePage = async (path: string, html: string) => {
     if (gzipSync(html).length > 25000) throw new Error(`HTML exceeds compressed 25 KB budget: ${path}`);
     await writeFile(path, html);
@@ -73,7 +74,7 @@ export async function writeSite(output: string, dates: readonly string[], screen
 
 export function renderDate(date: string, screenings: readonly Screening[], sources: readonly SourceInfo[], dates: readonly string[] = [date], home = false): string {
   const label = shareDate.format(new Date(`${date}T12:00:00Z`));
-  const day = screenings.filter(item => chicagoDate(item.start.at) === date)
+  const day = screenings.filter(item => isActiveVenue(item.venueId) && chicagoDate(item.start.at) === date)
     .sort((a, b) => a.start.at.localeCompare(b.start.at) || a.title.localeCompare(b.title));
   const card = socialCard(date, day);
   const title = `See films on ${label} · Twin Cities Movie Club`;
@@ -81,9 +82,9 @@ export function renderDate(date: string, screenings: readonly Screening[], sourc
   const url = home ? "https://tcmovie.club/" : `https://tcmovie.club/${date}/`;
   const image = `https://tcmovie.club${card.imagePath}`;
   const imageAlt = card.alt;
-  const stale = (source: SourceInfo) => source.stale || !!source.error || !source.checkedAt;
+  const stale = (source: SourceInfo) => isActiveVenue(source.sourceId) && (source.stale || !!source.error || !source.checkedAt);
   const hasStale = sources.some(stale);
-  const failedNames = sources.filter(source => source.error).map(source => venueNames[source.sourceId]);
+  const failedNames = sources.filter(source => isActiveVenue(source.sourceId) && source.error).map(source => venueNames[source.sourceId]);
   const links = dates.map(value => `<a href="/${escape(value)}/"${value === date ? ' aria-current="date"' : ""}>${escape(dayLabel.format(new Date(`${value}T12:00:00Z`)))}</a>`).join(" ");
   const rows = day.map(item => {
     const labels = [item.format, item.series,
@@ -129,8 +130,6 @@ body{font:17px/1.5 system-ui,sans-serif;max-width:44rem;margin:auto;padding:1rem
 [data-theater=parkway],[data-venue=parkway]{--venue-color:#91451f;--venue-tint:#f0e7df}
 [data-theater=riverview],[data-venue=riverview]{--venue-color:#285f8f;--venue-tint:#e5eaea}
 [data-theater=main],[data-venue=main]{--venue-color:#515d6b;--venue-tint:#e9e9e6}
-[data-theater=grandview],[data-venue=grandview]{--venue-color:#72552d;--venue-tint:#eee8df}
-[data-theater=highland],[data-venue=highland]{--venue-color:#365f59;--venue-tint:#e5eeea}
 .venue-badge{display:inline-block;padding:.1em .45em;border-radius:.25rem;font-weight:600;color:var(--venue-color);background:var(--venue-tint)}
 [hidden]{display:none!important}#theater-filters{border:0;padding:0;margin:1.1rem 0 .5rem}#theater-filters legend{font-size:.9rem;font-weight:650;margin-bottom:.5rem}.theater-buttons{display:flex;flex-wrap:wrap;gap:.6rem}.theater-buttons button{font:inherit;font-size:.9rem;min-height:44px;padding:.4rem .7rem;border:1px solid var(--venue-color,var(--link));border-radius:.3rem;background:var(--paper);color:var(--venue-color,var(--link));cursor:pointer}.theater-buttons button[aria-pressed=true]{background:var(--venue-color);color:var(--on-venue)}.theater-buttons button[data-theater]::before{content:"";display:inline-block;width:1em}.theater-buttons button[aria-pressed=true]::before{content:"✓"}.theater-buttons button:disabled{border-color:var(--rule);cursor:default}#filter-status{min-height:1.5em;margin:.5rem 0}
 @media(hover:hover){a:hover{text-decoration-thickness:.14em}nav a:not([aria-current]):hover{background:var(--hover);text-decoration:underline}.theater-buttons button:not(:disabled):hover{background:var(--venue-tint,var(--hover))}.theater-buttons button[aria-pressed=true]:hover{background:var(--venue-color);box-shadow:inset 0 0 0 1px var(--on-venue)}}
@@ -148,8 +147,6 @@ html{background-image:linear-gradient(180deg,#231d16,var(--paper) 32rem);backgro
 [data-theater=parkway],[data-venue=parkway]{--venue-color:#e7b88a;--venue-tint:#352a21}
 [data-theater=riverview],[data-venue=riverview]{--venue-color:#aec6dc;--venue-tint:#242c34}
 [data-theater=main],[data-venue=main]{--venue-color:#c8c0b4;--venue-tint:#2e2a24}
-[data-theater=grandview],[data-venue=grandview]{--venue-color:#e1c99e;--venue-tint:#332b22}
-[data-theater=highland],[data-venue=highland]{--venue-color:#acd3c5;--venue-tint:#23302a}
 }
 @media(prefers-contrast:more){:root{--rule:var(--ink)}html{background-image:none}}
 @media(forced-colors:active){
@@ -164,7 +161,7 @@ html{background-image:none}
 <nav aria-label="Dates">${links}</nav></header>
 <main>
 <fieldset id="theater-filters" hidden><legend><span>Theaters</span><button type="button" data-reset>Show all</button></legend><div class="theater-buttons">
-${Object.entries(venueNames).map(([id, name]) => `<button type="button" data-theater="${id}" aria-pressed="true">${id === "main" ? "Main" : escape(name)}</button>`).join("\n")}
+${activeVenueIds.map(id => `<button type="button" data-theater="${id}" aria-pressed="true">${id === "main" ? "Main" : escape(venueNames[id])}</button>`).join("\n")}
 </div></fieldset>
 <noscript><p>All theaters are shown. Enable JavaScript to filter by theater.</p></noscript>
 <p id="filter-status" role="status" aria-live="polite">${rows ? "" : "No screenings found in the saved data for this date."}</p>
@@ -177,9 +174,9 @@ ${rows ? `<ul class="screenings" aria-label="Screenings">${rows}</ul>` : ""}
 </section></main>
 <footer><h2 id="source-freshness">Source freshness</h2>
 <table class="source-freshness" aria-labelledby="source-freshness"><thead><tr><th scope="col">Theater</th><th scope="col">Last checked (Central)</th></tr></thead><tbody>
-${sources.map(source => `<tr><th scope="row"><a href="${escape(venueUrls[source.sourceId])}">${venueNames[source.sourceId]}</a></th><td${stale(source) ? ' aria-describedby="source-notice"' : ""}>${source.checkedAt ? `<time datetime="${escape(source.checkedAt)}">${escape(stamp.format(new Date(source.checkedAt)))}</time>` : "Never checked"}${stale(source) ? '<sup aria-label="Older or unavailable data">*</sup>' : ""}</td></tr>`).join("\n")}
+${sources.map(source => `<tr><th scope="row"><a href="${escape(venueUrls[source.sourceId])}">${venueNames[source.sourceId]}</a></th><td${stale(source) ? ' aria-describedby="source-notice"' : ""}>${source.checkedAt ? `<time datetime="${escape(source.checkedAt)}">${escape(stamp.format(new Date(source.checkedAt)))}</time>` : "Never checked"}${stale(source) ? '<sup aria-label="Older or unavailable data">*</sup>' : ""}${!isActiveVenue(source.sourceId) ? '<br><small>Listings unavailable: automated access blocked.</small>' : ""}</td></tr>`).join("\n")}
 </tbody></table>
-${hasStale || sources.some(source => source.incomplete) ? `<p id="source-notice">${hasStale ? "* Marked listings may be stale. " : ""}Some dates or screening details may be incomplete; check theater links for the latest schedule.</p>` : ""}
+${hasStale || sources.some(source => isActiveVenue(source.sourceId) && source.incomplete) ? `<p id="source-notice">${hasStale ? "* Marked listings may be stale. " : ""}Some dates or screening details may be incomplete; check theater links for the latest schedule.</p>` : ""}
 ${failedNames.length ? `<p>Import failed for ${escape(new Intl.ListFormat("en-US").format(failedNames))}; showing saved listings where available.</p>` : ""}
 <hr><div class="footer-links"><a href="https://github.com/sbone/tcmovie.club">Source on GitHub</a><span>A <a href="https://qualityti.me">Quality Time</a> Effort</span></div>
 </footer><script>(${initTheaterFilters.toString()})();
